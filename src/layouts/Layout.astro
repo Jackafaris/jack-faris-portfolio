@@ -1,0 +1,39 @@
+---
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Jack Faris - Sales Leader & Robotics Specialist. Building solutions that create value for society.">
+  <title>Jack Faris | Sales Leader & Robotics Specialist</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <nav>
+    <div class="container">
+      <a href="/" class="logo">Jack Faris</a>
+      <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/about">About</a></li>
+        <li><a href="/challenges">Challenges</a></li>
+        <li><a href="/contact">Contact</a></li>
+      </ul>
+    </div>
+  </nav>
+  
+  <main>
+    <slot />
+  </main>
+  
+  <footer>
+    <div class="container">
+      <p>&copy; 2026 Jack Faris. Built with purpose.</p>
+    </div>
+  </footer>
+</body>
+</html>
