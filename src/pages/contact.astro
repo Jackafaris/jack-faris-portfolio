@@ -4,74 +4,99 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout>
   <section class="hero">
+    <div class="container" style="text-align: center;">
+      <h1 class="text-gradient">Contact</h1>
+      <p style="margin-left: auto; margin-right: auto;">Interested in connecting? I'm always open to discussing new opportunities, partnerships, or ideas.</p>
+    </div>
+  </section>
+  
+  <section>
     <div class="container">
-      <h1>Contact</h1>
-      <p>Interested in connecting? I'm always open to discussing new opportunities, partnerships, or ideas.</p>
+      <div class="glass-panel" style="text-align: center; max-width: 800px; margin: 0 auto; padding: 3rem;">
+        <h2 class="text-gradient-red">Let's Build Something Together</h2>
+        <p style="margin: var(--space-sm) auto; font-size: 1.25rem;">My mission is to solve problems and create value. Fill out the form below to send an email directly to my inbox.</p>
+        
+        <form action="https://api.web3forms.com/submit" method="POST" style="margin-top: var(--space-md); text-align: left;">
+          <!-- Replace this with your actual Web3Forms Access Key from https://web3forms.com/ -->
+          <input type="hidden" name="access_key" value="203195">
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label for="name" style="color: var(--color-text-light); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Name</label>
+              <input type="text" id="name" name="name" required placeholder="Your Name">
+            </div>
+            <div>
+              <label for="email" style="color: var(--color-text-light); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Email</label>
+              <input type="email" id="email" name="email" required placeholder="your.email@example.com">
+            </div>
+          </div>
+          
+          <div style="margin-top: 1rem;">
+            <label for="message" style="color: var(--color-text-light); font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">Message</label>
+            <textarea id="message" name="message" required placeholder="How can I bring value to your team or project?"></textarea>
+          </div>
+          
+          <!-- Hcaptcha (optional) or Honeypot (prevents spam) -->
+          <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
+          
+          <button type="submit" class="btn" style="width: 100%; margin-top: 1rem;">Send Message</button>
+        </form>
+      </div>
     </div>
   </section>
   
   <section>
     <div class="container">
       <div class="section-header">
-        <h2>Get in Touch</h2>
+        <h2 class="text-gradient-red">Get in Touch</h2>
         <p>Whether you're interested in my experience with robotics and medical devices, want to discuss AI and automation for your business, or just want to connect — I'd love to hear from you.</p>
       </div>
       
       <div class="grid grid-2">
-        <div>
+        <div class="card glass-panel">
           <h3>Contact Information</h3>
-          <div class="contact-methods">
-            <div class="contact-method">
-              <span>📧</span>
+          <div class="contact-methods" style="margin-top: var(--space-sm);">
+            <div class="contact-method" style="padding: 1rem 0; flex-direction: row; justify-content: flex-start; text-align: left;">
+              <span style="font-size: 1.5rem; background: var(--color-accent-light); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--color-border); margin: 0;">📧</span>
               <div>
-                <strong>Email</strong><br>
+                <strong style="color: #fff;">Email</strong><br>
                 <a href="mailto:jackafaris@gmail.com">jackafaris@gmail.com</a>
               </div>
             </div>
             
-            <div class="contact-method">
-              <span>💼</span>
+            <div class="contact-method" style="padding: 1rem 0; flex-direction: row; justify-content: flex-start; text-align: left;">
+              <span style="font-size: 1.5rem; background: var(--color-accent-light); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--color-border); margin: 0;">💼</span>
               <div>
-                <strong>LinkedIn</strong><br>
+                <strong style="color: #fff;">LinkedIn</strong><br>
                 <a href="https://www.linkedin.com/in/jack-faris" target="_blank" rel="noopener">linkedin.com/in/jack-faris</a>
               </div>
             </div>
             
-            <div class="contact-method">
-              <span>📍</span>
+            <div class="contact-method" style="padding: 1rem 0; flex-direction: row; justify-content: flex-start; text-align: left;">
+              <span style="font-size: 1.5rem; background: var(--color-accent-light); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid var(--color-border); margin: 0;">📍</span>
               <div>
-                <strong>Location</strong><br>
-                St. Louis, Missouri
+                <strong style="color: #fff;">Location</strong><br>
+                <span style="color: var(--color-text-light);">St. Louis, Missouri</span>
               </div>
             </div>
           </div>
         </div>
         
-        <div>
+        <div class="card glass-panel">
           <h3>What I'm Interested In</h3>
-          <ul style="margin-top: var(--space-sm);">
-            <li>Robotics and medical device opportunities</li>
-            <li>Sales leadership and team development roles</li>
-            <li>AI and automation consulting for small businesses</li>
-            <li>Partnerships that create value for society</li>
-            <li>Building something meaningful from the ground up</li>
+          <ul style="margin-top: var(--space-sm); padding-left: 1.5rem;">
+            <li style="margin-bottom: 0.5rem; color: var(--color-text-light);">Robotics and medical device opportunities</li>
+            <li style="margin-bottom: 0.5rem; color: var(--color-text-light);">Sales leadership and team development roles</li>
+            <li style="margin-bottom: 0.5rem; color: var(--color-text-light);">AI and automation consulting for small businesses</li>
+            <li style="margin-bottom: 0.5rem; color: var(--color-text-light);">Partnerships that create value for society</li>
+            <li style="margin-bottom: 0.5rem; color: var(--color-text-light);">Building something meaningful from the ground up</li>
           </ul>
           
-          <div style="margin-top: var(--space-md);">
-            <h3>Response Time</h3>
+          <div style="margin-top: var(--space-md); border-top: 1px solid var(--color-border); padding-top: var(--space-md);">
+            <h3 style="font-size: 1.125rem;">Response Time</h3>
             <p>I typically respond to emails within 24-48 hours.</p>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-  
-  <section style="background: var(--color-accent-light);">
-    <div class="container">
-      <div style="text-align: center; max-width: 600px; margin: 0 auto;">
-        <h2>Let's Build Something Together</h2>
-        <p style="margin: var(--space-sm) 0;">My mission is to solve problems and create value. If you have a challenge that aligns with that mission, let's talk.</p>
-        <a href="mailto:jackafaris@gmail.com" class="btn" style="margin-top: var(--space-sm);">Send an Email</a>
       </div>
     </div>
   </section>

@@ -6,11 +6,18 @@ import Layout from '../layouts/Layout.astro';
   <section class="hero">
     <div class="container">
       <div class="hero-content">
-        <h1>Building solutions that solve problems and create value.</h1>
-        <p>I'm Jack Faris, a sales leader and robotics specialist with experience at Medtronic, Enterprise Mobility, and Arthrex. My mission is to leverage technology and AI to build something meaningful for society while creating financial freedom.</p>
-        <div class="hero-buttons">
-          <a href="/about" class="btn">Learn More</a>
-          <a href="/contact" class="btn btn-secondary">Get in Touch</a>
+        <div class="hero-text">
+          <h1>Building solutions that solve problems and <span class="text-gradient">create value.</span></h1>
+          <p>I'm Jack Faris, a sales leader and robotics specialist with experience at Medtronic. My mission is to leverage technology and AI to build something meaningful for society while creating financial freedom.</p>
+          
+          <div class="hero-image-container">
+             <img src="/images/jack-headshot.jpg" alt="Jack Faris" />
+          </div>
+
+          <div class="hero-buttons" style="margin-top: 2rem;">
+            <a href="/about" class="btn">Learn More</a>
+            <a href="/contact" class="btn btn-secondary">Get in Touch</a>
+          </div>
         </div>
       </div>
     </div>
@@ -19,34 +26,31 @@ import Layout from '../layouts/Layout.astro';
   <section>
     <div class="container">
       <div class="section-header">
-        <h2>Current Focus</h2>
+        <h2 class="text-gradient-red">Current Focus</h2>
         <p>Medtronic Hugo RAS Platform — Certified specialist running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
       </div>
       
-      <div class="grid grid-3">
-        <div class="card">
-          <h3>🎯 Sales Leadership</h3>
-          <p>Branch Manager at Enterprise Mobility with 44% profit growth and 5 team promotions. Experienced in B2B sales, team development, and P&L management.</p>
-        </div>
-        
-        <div class="card">
-          <h3>🏥 Medical Devices</h3>
+      <div class="grid grid-2">
+        <div class="card glass-panel">
+          <h3><span style="font-size: 1.5rem">🏥</span> Medical Devices</h3>
           <p>Certified in Medtronic's Hugo Robotic-Assisted Surgery platform. Running prostatectomy and hysterectomy cases with strong surgeon feedback.</p>
         </div>
         
-        <div class="card">
-          <h3>🤖 AI & Technology</h3>
+        <div class="card glass-panel">
+          <h3><span style="font-size: 1.5rem">🤖</span> AI & Technology</h3>
           <p>Exploring AI agents and automation to solve real-world problems. Building OpenClaw as a platform to create value for small businesses and individuals.</p>
         </div>
       </div>
     </div>
   </section>
   
-  <section style="background: var(--color-accent-light);">
+  <section>
     <div class="container">
       <div class="section-header">
-        <h2>Mission</h2>
-        <p>To build something that solves a problem for society and creates financial freedom — while helping others leverage technology to do the same.</p>
+        <h2 class="text-gradient-red">Mission</h2>
+      </div>
+      <div class="glass-panel" style="padding: 3rem; text-align: center; max-width: 800px; margin: 0 auto;">
+        <p style="font-size: 1.25rem; color: #fff; margin: 0 auto;">To build something that solves a problem for society and creates financial freedom — while helping others leverage technology to do the same.</p>
       </div>
     </div>
   </section>
