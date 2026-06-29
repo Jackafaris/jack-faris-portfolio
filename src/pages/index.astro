@@ -1,56 +1,80 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import ExperienceSection from '../components/ExperienceSection.astro';
+import Testimonials from '../components/Testimonials.astro';
+import { site } from '../data/site';
 ---
 
 <Layout>
   <section class="hero">
     <div class="container">
-      <div class="hero-content">
-        <div class="hero-text">
-          <h1>Building solutions that solve problems and <span class="text-gradient">create value.</span></h1>
-          <p>I'm Jack Faris, a robotics specialist with experience at Medtronic. My mission is to leverage technology and AI to build something meaningful for society while creating financial freedom.</p>
-          
-          <div class="hero-image-container">
-             <img src="/images/jack-headshot.jpg" alt="Jack Faris" />
-          </div>
+      <div class="hero-grid">
+        <div class="hero-image-container">
+          <img src="/images/jack-headshot.jpg" alt="Jack Faris headshot" width="280" height="280" />
+        </div>
 
-          <div class="hero-buttons" style="margin-top: 2rem;">
-            <a href="/about" class="btn">Learn More</a>
+        <div class="hero-text">
+          <p class="hero-eyebrow">{site.tagline}</p>
+          <h1>
+            Helping hospitals adopt robotic surgery and building <span class="text-gradient">practical AI tools.</span>
+          </h1>
+          <p>
+            I'm {site.name}, a certified Hugo RAS specialist at Medtronic and builder of OpenClaw. I combine sales leadership, clinical technology expertise, and hands-on AI development to solve real problems and create lasting value.
+          </p>
+
+          <div class="hero-buttons">
+            <a href="/work" class="btn">View My Work</a>
+            <a href="/resume" class="btn btn-secondary">Download Resume</a>
             <a href="/contact" class="btn btn-secondary">Get in Touch</a>
           </div>
         </div>
       </div>
     </div>
   </section>
-  
+
   <section>
     <div class="container">
       <div class="section-header">
         <h2 class="text-gradient-red">Current Focus</h2>
-        <p>Medtronic Hugo RAS Platform — Certified specialist running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
+        <p>Medtronic Hugo RAS Platform — certified specialist running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
       </div>
-      
+
       <div class="grid grid-2">
         <div class="card glass-panel">
-          <h3><span style="font-size: 1.5rem">🏥</span> Medical Devices</h3>
-          <p>Certified in Medtronic's Hugo Robotic-Assisted Surgery platform.</p>
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" />
+            </svg>
+          </div>
+          <h3>Medical Devices</h3>
+          <p>Certified in Medtronic's Hugo Robotic-Assisted Surgery platform with direct OR case support experience.</p>
         </div>
-        
+
         <div class="card glass-panel">
-          <h3><span style="font-size: 1.5rem">🤖</span> AI & Technology</h3>
-          <p>Exploring AI agents and automation to solve real-world problems. Building OpenClaw as a platform to create value for small businesses and individuals.</p>
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <rect x="4" y="7" width="16" height="12" rx="2" />
+              <path d="M9 7V5a3 3 0 0 1 6 0v2M8 12h.01M12 12h.01M16 12h.01" />
+            </svg>
+          </div>
+          <h3>AI & Technology</h3>
+          <p>Building OpenClaw — an AI agent platform that helps small businesses and individuals automate meaningful work.</p>
         </div>
       </div>
     </div>
   </section>
-  
+
+  <ExperienceSection />
+
+  <Testimonials />
+
   <section>
     <div class="container">
       <div class="section-header">
         <h2 class="text-gradient-red">Mission</h2>
       </div>
-      <div class="glass-panel" style="padding: 3rem; text-align: center; max-width: 800px; margin: 0 auto;">
-        <p style="font-size: 1.25rem; color: #fff; margin: 0 auto;">To build something that solves a problem for society and creates financial freedom — while helping others leverage technology to do the same.</p>
+      <div class="mission-panel glass-panel">
+        <p>To build something that solves a problem for society and creates financial freedom — while helping others leverage technology to do the same.</p>
       </div>
     </div>
   </section>

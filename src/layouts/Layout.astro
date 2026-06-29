@@ -1,6 +1,24 @@
 ---
 import Analytics from '@vercel/analytics/astro';
+import Navigation from '../components/Navigation.astro';
+import Footer from '../components/Footer.astro';
+import { site } from '../data/site';
 import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const {
+  title = `${site.name} | ${site.title}`,
+  description = 'Jack Faris — Medtronic robotics specialist and sales leader building practical AI solutions in St. Louis, Missouri.',
+  ogImage = '/og-image.svg',
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, site.url);
+const ogImageURL = new URL(ogImage, site.url);
 ---
 
 <!DOCTYPE html>
@@ -8,36 +26,33 @@ import '../styles/global.css';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Jack Faris - Sales Leader & Robotics Specialist. Building solutions that create value for society.">
-  <title>Jack Faris | Sales Leader & Robotics Specialist</title>
+  <meta name="description" content={description}>
+  <title>{title}</title>
+  <link rel="canonical" href={canonicalURL}>
+  <meta property="og:type" content="website">
+  <meta property="og:url" content={canonicalURL}>
+  <meta property="og:title" content={title}>
+  <meta property="og:description" content={description}>
+  <meta property="og:image" content={ogImageURL}>
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content={title}>
+  <meta name="twitter:description" content={description}>
+  <meta name="twitter:image" content={ogImageURL}>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <div class="bg-mesh"></div>
-  
-  <nav class="glass-nav">
-    <div class="glass-nav-container">
-      <a href="/" class="logo">[J] F_</a>
-      <ul class="nav-links">
-        <li><a href="/">Home</a></li>
-        <li><a href="/about">About</a></li>
-        <li><a href="/challenges">Challenges</a></li>
-        <li><a href="/contact">Contact</a></li>
-      </ul>
-    </div>
-  </nav>
-  
-  <main>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <div class="bg-mesh" aria-hidden="true"></div>
+
+  <Navigation />
+
+  <main id="main-content">
     <slot />
   </main>
-  
-  <footer>
-    <div class="container">
-      <p>&copy; 2026 Jack Faris. Forging digital reality.</p>
-    </div>
-  </footer>
+
+  <Footer />
   <Analytics />
 </body>
 </html>
