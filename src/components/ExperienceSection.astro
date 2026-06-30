@@ -1,0 +1,36 @@
+---
+import { experience } from '../data/site';
+---
+
+<section class="experience-section" id="experience">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="text-gradient-red">Experience</h2>
+      <p>A track record in medical devices, sales leadership, and technology adoption.</p>
+    </div>
+
+    <div class="experience-list">
+      {
+        experience.map((item) => (
+          <article class="experience-item glass-panel">
+            <div class="experience-header">
+              <div>
+                <h3>{item.role}</h3>
+                <p class="experience-company">{item.company}</p>
+              </div>
+              <div class="experience-meta-block">
+                <span class="experience-meta">{item.period}</span>
+                <span class="experience-location">{item.location}</span>
+              </div>
+            </div>
+            <ul>
+              {item.highlights.map((highlight) => (
+                <li>{highlight}</li>
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>

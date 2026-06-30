@@ -1,0 +1,16 @@
+---
+import { site } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer>
+  <div class="container footer-inner">
+    <p class="footer-copy">&copy; {year} {site.name} · {site.location}</p>
+    <div class="footer-links">
+      <a href={site.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href={`mailto:${site.email}`}>Email</a>
+      <a href="/resume">Resume</a>
+    </div>
+    <p class="footer-credit">Designed and built by Jack Faris with AI-assisted development.</p>
+  </div>
+</footer>

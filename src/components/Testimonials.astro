@@ -1,0 +1,26 @@
+---
+import { testimonials } from '../data/site';
+---
+
+<section class="testimonials-section">
+  <div class="container">
+    <div class="section-header">
+      <h2 class="text-gradient-red">What Colleagues Say</h2>
+      <p>Professional feedback from partners and teammates. Replace these with your own LinkedIn recommendations.</p>
+    </div>
+
+    <div class="grid grid-2">
+      {
+        testimonials.map((item) => (
+          <blockquote class="testimonial-card glass-panel">
+            <p>"{item.quote}"</p>
+            <footer>
+              <cite>— {item.attribution}</cite>
+              <span>{item.context}</span>
+            </footer>
+          </blockquote>
+        ))
+      }
+    </div>
+  </div>
+</section>

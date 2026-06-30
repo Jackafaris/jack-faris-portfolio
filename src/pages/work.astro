@@ -1,0 +1,42 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { projects } from '../data/site';
+---
+
+<Layout
+  title="Work | Jack Faris"
+  description="Selected work by Jack Faris — OpenClaw AI platform and Medtronic Hugo RAS robotics specialization."
+>
+  <section class="hero hero-compact">
+    <div class="container page-intro">
+      <h1 class="text-gradient">Work</h1>
+      <p>Projects and professional focus areas where I combine sales leadership, robotics expertise, and AI development.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="project-list">
+        {
+          projects.map((project, index) => (
+            <article class="project-card glass-panel">
+              <div class="project-header">
+                <span class="project-number">0{index + 1}.</span>
+                <div>
+                  <h2>{project.name}</h2>
+                  <p class="experience-meta">{project.period}</p>
+                </div>
+              </div>
+              <p class="project-summary">{project.summary}</p>
+              <ul>
+                {project.highlights.map((highlight) => (
+                  <li>{highlight}</li>
+                ))}
+              </ul>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+</Layout>

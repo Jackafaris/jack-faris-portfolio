@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { site, experience, education } from '../data/site';
+---
+
+<Layout
+  title="Resume | Jack Faris"
+  description="Resume for Jack Faris — sales leader, Medtronic robotics specialist, and AI builder."
+>
+  <section class="hero hero-compact">
+    <div class="container page-intro resume-intro">
+      <h1 class="text-gradient">Resume</h1>
+      <p>Print or save this page as a PDF for a portable copy of my experience.</p>
+      <button type="button" class="btn resume-print-btn" onclick="window.print()">Save as PDF</button>
+    </div>
+  </section>
+
+  <section class="resume-section">
+    <div class="container">
+      <article class="resume-document glass-panel">
+        <header class="resume-header">
+          <div>
+            <h2>{site.name}</h2>
+            <p class="resume-title">{site.title}</p>
+            <p class="resume-contact">
+              {site.location} · <a href={`mailto:${site.email}`}>{site.email}</a> · <a href={site.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </p>
+          </div>
+        </header>
+
+        <section class="resume-block">
+          <h3>Summary</h3>
+          <p>
+            Certified Medtronic Hugo RAS specialist and sales leader with experience in B2B sales, medical devices, and insurance. Builder of OpenClaw, an AI agent platform focused on practical automation for small businesses.
+          </p>
+        </section>
+
+        <section class="resume-block">
+          <h3>Experience</h3>
+          {
+            experience.map((item) => (
+              <div class="resume-entry">
+                <div class="resume-entry-header">
+                  <strong>{item.role}</strong>
+                  <span>{item.period}</span>
+                </div>
+                <p class="resume-entry-subtitle">
+                  {item.company} · {item.location}
+                </p>
+                <ul>
+                  {item.highlights.map((highlight) => (
+                    <li>{highlight}</li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          }
+        </section>
+
+        <section class="resume-block">
+          <h3>Education & Certifications</h3>
+          <div class="resume-entry">
+            <div class="resume-entry-header">
+              <strong>{education.degree}</strong>
+            </div>
+            <p class="resume-entry-subtitle">
+              {education.school} · {education.minor}
+            </p>
+          </div>
+          <ul>
+            {education.certifications.map((cert) => (
+              <li>{cert}</li>
+            ))}
+          </ul>
+        </section>
+      </article>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  @media print {
+    :global(.glass-nav),
+    :global(footer),
+    .resume-print-btn,
+    .hero {
+      display: none !important;
+    }
+
+    :global(body) {
+      background: #fff !important;
+      color: #111 !important;
+    }
+
+    .resume-document {
+      box-shadow: none !important;
+      border: none !important;
+      background: #fff !important;
+      color: #111 !important;
+      padding: 0 !important;
+    }
+
+    .resume-document :global(a) {
+      color: #111 !important;
+    }
+
+    .resume-block :global(p),
+    .resume-block :global(li) {
+      color: #222 !important;
+    }
+  }
+</style>

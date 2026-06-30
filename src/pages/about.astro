@@ -1,60 +1,63 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { education } from '../data/site';
 ---
 
-<Layout>
-  <section class="hero">
-    <div class="container" style="text-align: center;">
+<Layout
+  title="About | Jack Faris"
+  description="Learn about Jack Faris — sales leader, Medtronic robotics specialist, and AI builder based in St. Louis, Missouri."
+>
+  <section class="hero hero-compact">
+    <div class="container page-intro">
       <h1 class="text-gradient">About</h1>
-      <p style="margin-left: auto; margin-right: auto;">Results-oriented sales leader with a demonstrated record of creating and executing strategies to maximize revenue and exceed goals. Strong background in B2B sales, team development, medical devices, and the insurance industry.</p>
+      <p>Results-oriented sales leader with a demonstrated record of creating and executing strategies to maximize revenue and exceed goals. Strong background in B2B sales, team development, medical devices, and the insurance industry.</p>
     </div>
   </section>
-  
+
   <section>
     <div class="container">
       <div class="section-header">
         <h2 class="text-gradient-red">The Story</h2>
       </div>
-      
-      <div class="glass-panel" style="padding: 3rem; margin: 0 auto;">
-        <p style="font-size: 1.125rem; line-height: 1.8; max-width: 100%; color: #fff;">I grew up in St. Louis, Missouri, playing competitive soccer and tennis in high school. I then went to college at the University of Missouri — Mizzou, where I tried to do anything and everything: volunteering, joined a fraternity, played club tennis, and had multiple jobs throughout my college years. Most importantly, I constantly networked with anyone who I could bring value to, and gathered a lot of the experience that helps me today. Now, I like to have board game nights with my friends, go to my favorite local Mexican spot, and work on my OpenClaw in the meantime.</p>
+
+      <div class="content-panel glass-panel">
+        <p>I grew up in St. Louis, Missouri, playing competitive soccer and tennis in high school. I then went to college at the University of Missouri — Mizzou, where I tried to do anything and everything: volunteering, joined a fraternity, played club tennis, and had multiple jobs throughout my college years. Most importantly, I constantly networked with anyone who I could bring value to, and gathered a lot of the experience that helps me today.</p>
+        <p>Now, I like to have board game nights with my friends, go to my favorite local Mexican spot, and work on OpenClaw in the meantime — always looking for the next problem worth solving.</p>
       </div>
     </div>
   </section>
-  
+
   <section>
     <div class="container">
       <div class="section-header">
         <h2 class="text-gradient-red">Education & Certifications</h2>
       </div>
-      
+
       <div class="grid grid-2">
         <div class="card glass-panel">
-          <h3>🎓 University of Missouri</h3>
-          <p>Bachelor of Health Science<br>Sales Certificate Minor</p>
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M12 3 2 8l10 5 10-5-10-5Z" />
+              <path d="M6 11v4c0 2 3 4 6 4s6-2 6-4v-4" />
+            </svg>
+          </div>
+          <h3>{education.school}</h3>
+          <p>{education.degree}<br />{education.minor}</p>
         </div>
-        
+
         <div class="card glass-panel">
-          <h3>📜 Certifications</h3>
-          <p>Excel Essential Training (Office 365)<br>Health and Accident Insurance Producer License<br>Medtronic Hugo RAS Platform Certified</p>
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M9 12l2 2 4-4" />
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+            </svg>
+          </div>
+          <h3>Certifications</h3>
+          <ul class="cert-list">
+            {education.certifications.map((cert) => <li>{cert}</li>)}
+          </ul>
         </div>
       </div>
-    </div>
-  </section>
-  
-  <section>
-    <div class="container">
-      <div class="section-header">
-        <h2 class="text-gradient-red">About This Site</h2>
-      </div>
-      
-      <div class="ai-perspective">
-        <p>"I am OpenClaw, an AI assistant designed specifically for Jack. My mission is to enable him to solve problems and create value for society. Working with Jack has been unique — he approaches AI not as a replacement for human work, but as a multiplier for his own capabilities. He thinks in systems, asks the right questions, and isn't afraid to experiment. This website represents our collaboration: Jack's vision for what he wants to build, and my ability to help him execute it. He's building something meaningful — and I'm here to help him get there."</p>
-        <div class="attribution">— OpenClaw AI Assistant</div>
-      </div>
-      
-      <p style="margin-top: var(--space-md); text-align: center; margin-left: auto; margin-right: auto;">Heavy code lifting done by Antigravity, easy to use and works wonders.</p>
-      <p style="margin-top: var(--space-sm); text-align: center; margin-left: auto; margin-right: auto; color: var(--color-text-light);">This portfolio was designed and built through a collaboration between Jack Faris and OpenClaw. It represents Jack's mission to leverage technology and AI to build solutions that matter.</p>
     </div>
   </section>
 </Layout>
