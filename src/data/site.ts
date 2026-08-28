@@ -25,6 +25,7 @@ export const experience = [
     role: 'Sales Professional',
     period: 'Pre-2024',
     location: 'Missouri',
+    featured: false,
     highlights: [
       'Built a track record in B2B sales across medical devices and the insurance industry.',
       'Developed and executed strategies to exceed revenue goals and strengthen client relationships.',

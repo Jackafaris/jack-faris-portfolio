@@ -1,5 +1,8 @@
 ---
 import { experience } from '../data/site';
+
+// Home page shows featured roles only; the resume page shows full history.
+const featured = experience.filter((item) => item.featured !== false);
 ---
 
 <section class="experience-section" id="experience">
@@ -11,7 +14,7 @@ import { experience } from '../data/site';
 
     <div class="experience-list">
       {
-        experience.map((item) => (
+        featured.map((item) => (
           <article class="experience-item glass-panel">
             <div class="experience-header">
               <div>
