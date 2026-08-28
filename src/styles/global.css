@@ -391,6 +391,13 @@ section {
 }
 
 .hero h1 {
+  margin-bottom: 0.375rem;
+}
+
+.hero-sub {
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--color-accent-soft);
   margin-bottom: var(--space-sm);
 }
 
@@ -515,6 +522,10 @@ section {
 
 .grid-2 {
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.grid-3 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
 /* Content panels */
