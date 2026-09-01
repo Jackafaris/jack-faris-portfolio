@@ -66,8 +66,23 @@ function sanitizePosition(raw) {
 
 async function readStore() {
   try {
+    // Read via the SDK get() FIRST. The public-CDN URL (even with a
+    // ?t= query param) is cached by the Blob CDN — Vercel stores the
+    // cached object under its path and ignores the query string, so a
+    // cache-bust read can serve the pre-write body for up to 30 days
+    // (observed: age ~57000s after a clear at 2026-09-01). get() reads
+    // origin storage and is always fresh.
+    const blob = await get(BLOB_PATH, { type: 'json' });
+    if (blob && Array.isArray(blob.positions)) {
+      return { positions: blob.positions.map(sanitizePosition).filter(Boolean), etag: blob.etag || null };
+    }
+  } catch {
+    /* 404 / not created yet / SDK auth issue -> fall through */
+  }
+  try {
     if (BLOB_PUBLIC_BASE) {
-      // Cache-bust so readers always get fresh data, independent of CDN state.
+      // Fallback: public CDN URL (used when the SDK lacks read auth).
+      // Known to be stale-prone — see note above.
       const res = await fetch(`${BLOB_PUBLIC_BASE}/${BLOB_PATH}?t=${Date.now()}`, {
         cache: 'no-store',
       });
@@ -77,13 +92,8 @@ async function readStore() {
         return { positions: blob.positions.map(sanitizePosition).filter(Boolean), etag: null };
       }
     }
-    // Fallback: SDK get (works when auth env is available)
-    const blob = await get(BLOB_PATH, { type: 'json' });
-    if (blob && Array.isArray(blob.positions)) {
-      return { positions: blob.positions.map(sanitizePosition).filter(Boolean), etag: blob.etag || null };
-    }
   } catch {
-    /* 404 / not created yet -> empty */
+    /* ignore */
   }
   return { positions: [], etag: null };
 }
