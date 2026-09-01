@@ -1,7 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
-  <rect width="1200" height="630" fill="#0d0d0f"/>
-  <rect x="80" y="80" width="1040" height="470" rx="24" fill="#16161a" stroke="#c41e3a" stroke-opacity="0.35"/>
-  <text x="140" y="250" fill="#ffffff" font-family="Arial, sans-serif" font-size="72" font-weight="700">Jack Faris</text>
-  <text x="140" y="330" fill="#e8a0a8" font-family="Arial, sans-serif" font-size="36">Sales Leader &amp; Robotics Specialist</text>
-  <text x="140" y="400" fill="#a0a0ab" font-family="Arial, sans-serif" font-size="28">Medtronic � OpenClaw � St. Louis, MO</text>
+  <rect width="1200" height="630" fill="#ffffff"/>
+  <circle cx="1080" cy="120" r="300" fill="#ebf8f5"/>
+  <circle cx="40" cy="660" r="300" fill="#f5f5f2"/>
+  <circle cx="1080" cy="480" r="100" fill="#00a699"/>
+  <rect x="80" y="90" width="460" height="60" rx="30" fill="#ebf8f5" stroke="#00a699" stroke-width="1.5"/>
+  <text x="104" y="128" fill="#007a70" font-family="Arial, sans-serif" font-size="24" font-weight="700" letter-spacing="1">MEDTRONIC ROBOTICS SPECIALIST · AI BUILDER</text>
+  <text x="76" y="300" fill="#222222" font-family="Arial, sans-serif" font-size="96" font-weight="800">Jack Faris</text>
+  <text x="80" y="370" fill="#007a70" font-family="Arial, sans-serif" font-size="40" font-weight="700">Sales leader · Robotics specialist · AI builder</text>
+  <text x="82" y="430" fill="#6a6a6a" font-family="Arial, sans-serif" font-size="26">I help hospitals adopt robotic surgery — and I build</text>
+  <text x="82" y="466" fill="#6a6a6a" font-family="Arial, sans-serif" font-size="26">practical AI tools that solve real problems.</text>
+  <rect x="80" y="500" width="390" height="56" rx="28" fill="#00a699"/>
+  <text x="112" y="536" fill="#ffffff" font-family="Arial, sans-serif" font-size="26" font-weight="700">jackfaris.com</text>
 </svg>

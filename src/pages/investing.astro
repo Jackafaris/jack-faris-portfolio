@@ -25,7 +25,7 @@ export const prerender = true;
     <div class="container">
       <div class="investing-grid">
         <!-- Owner controls (hidden unless the owner code is entered) -->
-        <div class="glass-panel invest-panel owner-panel hidden" id="owner-panel">
+        <div class="invest-panel owner-panel hidden" id="owner-panel">
           <h2>Edit Jack's Picks</h2>
           <p class="owner-hint">You're in owner mode. Add or remove picks below — changes go live for everyone immediately.</p>
           <form id="add-position-form" autocomplete="off">
@@ -67,17 +67,17 @@ export const prerender = true;
             </button>
           </form>
           <div class="owner-actions">
-            <button class="btn-secondary btn btn-sm" id="export-btn" type="button">Export JSON</button>
-            <button class="btn-secondary btn btn-sm" id="import-btn" type="button">Import JSON</button>
+            <button class="btn btn-secondary btn-sm" id="export-btn" type="button">Export JSON</button>
+            <button class="btn btn-secondary btn-sm" id="import-btn" type="button">Import JSON</button>
             <input type="file" id="import-file" accept="application/json,.json" class="hidden" aria-hidden="true" tabindex="-1" />
-            <button class="btn-ghost btn btn-sm" id="clear-btn" type="button">Clear all</button>
-            <button class="btn-ghost btn btn-sm" id="lock-btn" type="button">Lock (exit)</button>
+            <button class="btn-ghost btn-sm" id="clear-btn" type="button">Clear all</button>
+            <button class="btn-ghost btn-sm" id="lock-btn" type="button">Lock (exit)</button>
           </div>
           <p class="fineprint">Import replaces the whole board. Use Export first to keep a backup.</p>
         </div>
 
         <!-- Owner lock (shown to visitors / owner not yet unlocked) -->
-        <div class="glass-panel invest-panel owner-lock" id="owner-lock">
+        <div class="invest-panel owner-lock" id="owner-lock">
           <div class="lock-ico" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
@@ -100,7 +100,7 @@ export const prerender = true;
         </div>
 
         <!-- Portfolio -->
-        <div class="glass-panel invest-panel invest-panel-wide">
+        <div class="invest-panel invest-panel-wide">
           <div class="invest-panel-head">
             <h2 id="board-title">Jack's picks</h2>
             <div class="invest-tools">
@@ -180,12 +180,12 @@ export const prerender = true;
   const priceUpdatedEl = $('#price-updated');
 
   let positions = [];
-  let ownerCode = '';
+  let ownerCode = (function () { try { return sessionStorage.getItem('jfpicks.owner') || ''; } catch { return ''; } })();
   let bench = null; // { data, error }
   let benchKey = '';
   let benchError = '';
   let positionLines = new Map(); // symbol -> {color, data|error}
-  const palette = ['#e8a0a8', '#7dd3fc', '#a7f3d0', '#fcd34d', '#c4b5fd', '#f9a8d4', '#5eead4', '#fdba74', '#93c5fd', '#f0abfc'];
+  const palette = ['#00a699', '#2f6fed', '#e8590c', '#9c36b5', '#0ca678', '#d6336c', '#1098ad', '#f59f00', '#5f3dc4', '#c2255c'];
 
   const isOwner = () => ownerCode.length > 0;
 
@@ -225,7 +225,7 @@ export const prerender = true;
     if (isOwner()) {
       ownerLock.classList.add('hidden');
       ownerPanel.classList.remove('hidden');
-      boardTitle.textContent = 'Jack's picks (editing)';
+      boardTitle.textContent = "Jack's picks (editing)";
       $('#p-date').value = $('#p-date').value || new Date().toISOString().slice(0, 10);
     } else {
       ownerPanel.classList.add('hidden');
@@ -252,6 +252,7 @@ export const prerender = true;
       return setOwnerStatus('err', 'That code is not right.');
     }
     ownerCode = code;
+    try { sessionStorage.setItem('jfpicks.owner', ownerCode); } catch { /* private mode */ }
     setOwnerStatus('ok', 'Unlocked.');
     applyMode();
     await refreshAll();
@@ -259,6 +260,7 @@ export const prerender = true;
 
   $('#lock-btn').addEventListener('click', () => {
     ownerCode = '';
+    try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
     ownerCodeEl.value = '';
     setOwnerStatus('', '');
     applyMode();
@@ -401,6 +403,11 @@ export const prerender = true;
     return { ctx, w, h };
   }
 
+  const GRID_COLOR = 'rgba(0,0,0,0.06)';
+  const LABEL_COLOR = 'rgba(0,0,0,0.45)';
+  const ZERO_COLOR = 'rgba(0,0,0,0.25)';
+  const BENCH_COLOR = '#00a699';
+
   function drawChart() {
     const { ctx, w, h } = setupCanvas();
     ctx.clearRect(0, 0, w, h);
@@ -412,7 +419,7 @@ export const prerender = true;
     if (bench && bench.data && bench.data.history.length > 1) {
       const hist = bench.data.history;
       const base = hist[0].close;
-      series.push({ name: 'Benchmark', color: '#c41e3a', width: 2.5, points: hist.map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
+      series.push({ name: 'Benchmark', color: BENCH_COLOR, width: 2.5, points: hist.map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
     }
     if (toggleLines.checked) {
       for (const p of positions) {
@@ -423,12 +430,12 @@ export const prerender = true;
         const startIdx = idx < 0 ? 0 : idx;
         const base = hist[startIdx].close;
         if (startIdx >= hist.length) continue;
-        series.push({ name: p.symbol, color: line.color, width: 1.6, points: hist.slice(startIdx).map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
+        series.push({ name: p.symbol, color: line.color, width: 1.8, points: hist.slice(startIdx).map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
       }
     }
     if (!series.length) {
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.font = '14px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.font = '14px DM Sans, sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(positions.length ? 'Fetching prices…' : 'No picks on the board yet', w / 2, h / 2);
       return;
@@ -445,21 +452,21 @@ export const prerender = true;
     const xOf = (d) => pad.l + (allDates.length < 2 ? 0 : (dateIndex.get(d) / (allDates.length - 1)) * plotW);
     const yOf = (v) => pad.t + (1 - (v - min) / (max - min)) * plotH;
 
-    ctx.font = '11px Inter, sans-serif';
+    ctx.font = '11px DM Sans, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
     const gridSteps = 5;
     for (let i = 0; i <= gridSteps; i++) {
       const v = min + (i / gridSteps) * (max - min);
       const y = yOf(v);
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.strokeStyle = GRID_COLOR;
       ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
-      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.fillStyle = LABEL_COLOR;
       ctx.fillText((v > 0 ? '+' : '') + v.toFixed(0) + '%', pad.l - 8, y);
     }
     if (min < 0 && max > 0) {
       const y0 = yOf(0);
-      ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+      ctx.strokeStyle = ZERO_COLOR;
       ctx.setLineDash([4, 4]);
       ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(w - pad.r, y0); ctx.stroke();
       ctx.setLineDash([]);
@@ -469,7 +476,7 @@ export const prerender = true;
     const xSteps = Math.min(6, allDates.length - 1);
     for (let i = 0; i <= xSteps; i++) {
       const d = allDates[Math.round((i / xSteps) * (allDates.length - 1))];
-      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.fillStyle = LABEL_COLOR;
       ctx.fillText(fmtDate(d), xOf(d), h - pad.b + 8);
     }
     for (const s of series) {
@@ -487,10 +494,10 @@ export const prerender = true;
       ctx.fillStyle = s.color;
       ctx.beginPath(); ctx.arc(xOf(endPt.date), yOf(endPt.val), 3, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
-    ctx.font = '10px Inter, sans-serif';
+    ctx.font = '10px DM Sans, sans-serif';
     ctx.fillText('Index: 0% = value on the earliest date shown. Position lines start at their buy date.', pad.l, h - 4);
   }
 
@@ -594,7 +601,8 @@ export const prerender = true;
       positions = body.positions;
     } catch (e) {
       addBtn.disabled = false;
-      return setAddStatus('err', e.status === 401 ? 'Owner lock expired — unlock again.' : 'Could not save: ' + e.message);
+      if (e.status === 401) { ownerCode = ''; try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ } applyMode(); }
+      return setAddStatus('err', 'Could not save: ' + e.message);
     }
     form.reset();
     $('#p-date').value = new Date().toISOString().slice(0, 10);
@@ -614,7 +622,7 @@ export const prerender = true;
       const body = await api('remove', { id });
       positions = body.positions;
     } catch (e) {
-      return alert(e.status === 401 ? 'Owner lock expired — unlock again.' : 'Could not remove: ' + e.message);
+      return alert('Could not remove: ' + e.message);
     }
     renderAll();
     await Promise.all([loadPositionLines(), loadBenchmark()]);
@@ -644,7 +652,7 @@ export const prerender = true;
       const body = await api('replace', { positions: list });
       positions = body.positions;
     } catch (e) {
-      return alert('Import failed: ' + (e.status === 401 ? 'owner lock expired.' : e.message));
+      return alert('Import failed: ' + e.message);
     }
     ev.target.value = '';
     await Promise.all([loadPositionLines(), loadBenchmark()]);
@@ -657,7 +665,7 @@ export const prerender = true;
       const body = await api('clear', {});
       positions = body.positions;
     } catch (e) {
-      return alert(e.status === 401 ? 'Owner lock expired.' : 'Could not clear: ' + e.message);
+      return alert('Could not clear: ' + e.message);
     }
     positionLines.clear();
     renderAll();
@@ -670,36 +678,54 @@ export const prerender = true;
   // ---------- init ----------
   $('#p-date').value = new Date().toISOString().slice(0, 10);
   applyMode();
-  refreshAll().catch(() => renderAll());
+  refreshAll()
+    .then(() => {
+      // if a saved owner code is present, re-verify it quietly
+      if (isOwner()) {
+        api('auth', { code: ownerCode }).catch(() => {
+          ownerCode = '';
+          try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
+          applyMode();
+        });
+      }
+    })
+    .catch(() => renderAll());
 })();
 </script>
 
 <style>
-  /* Investing page */
+  /* Investing page — light theme */
   .investing-section { padding: var(--space-md) 0 var(--space-lg); }
   .investing-grid { display: grid; grid-template-columns: 380px 1fr; gap: var(--space-md); align-items: start; }
   @media (max-width: 900px) { .investing-grid { grid-template-columns: 1fr; } }
 
-  .invest-panel { padding: var(--space-md); margin-bottom: var(--space-md); }
-  .invest-panel h2 { margin-bottom: var(--space-sm); font-size: 1.375rem; }
+  .invest-panel {
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+  }
 
+  .invest-panel h2 { margin-bottom: var(--space-sm); font-size: 1.375rem; }
   .invest-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: var(--space-sm); }
   .invest-panel-head h2 { margin-bottom: 0; font-size: 1.375rem; }
   .invest-tools { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 
   #compare-select {
-    background: rgba(13, 13, 15, 0.6); color: var(--color-text);
-    border: 1px solid var(--color-border); border-radius: calc(var(--radius) - 2px);
-    padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.875rem;
+    background: #fff; color: var(--color-text);
+    border: 1px solid var(--color-border-strong); border-radius: 10px;
+    padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.875rem; font-weight: 600;
   }
-  .tool-toggle { display: flex; align-items: center; gap: 0.4rem; color: var(--color-text-light); font-size: 0.875rem; cursor: pointer; user-select: none; }
+  .tool-toggle { display: flex; align-items: center; gap: 0.4rem; color: var(--color-text-light); font-size: 0.875rem; cursor: pointer; user-select: none; font-weight: 600; }
   .tool-toggle input { accent-color: var(--color-accent); }
 
   /* Owner lock card */
   .owner-lock { text-align: center; display: flex; flex-direction: column; align-items: center; }
   .lock-ico {
     width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    background: var(--color-accent-light); border: 1px solid var(--color-border-accent); color: var(--color-accent-soft); margin-bottom: var(--space-sm);
+    background: var(--color-accent-soft); border: 1px solid var(--color-accent-border); color: var(--color-accent-deep); margin-bottom: var(--space-sm);
   }
   .owner-lock h2 { font-size: 1.375rem; margin-bottom: 0.5rem; }
   .lock-copy { font-size: 0.9375rem; margin-bottom: var(--space-sm); }
@@ -708,47 +734,47 @@ export const prerender = true;
   .owner-hint { font-size: 0.875rem; margin-bottom: var(--space-sm); }
   .owner-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
 
-  .label-hint { color: var(--color-text-light); opacity: 0.7; font-size: 0.8125rem; }
-  .invest-status { font-size: 0.875rem; margin-bottom: 0.75rem; min-height: 1.2em; }
+  .label-hint { color: var(--color-text-faint); font-size: 0.8125rem; }
+  .invest-status { font-size: 0.875rem; margin-bottom: 0.75rem; min-height: 1.2em; font-weight: 600; }
   .invest-status.busy { color: var(--color-text-light); }
-  .invest-status.ok { color: #6ee7b7; }
-  .invest-status.err { color: #fca5a5; }
-  .invest-status.warn { color: #fcd34d; }
-  .fineprint { font-size: 0.8125rem; color: var(--color-text-light); opacity: 0.75; margin-top: 0.75rem; }
+  .invest-status.ok { color: var(--color-pos); }
+  .invest-status.err { color: var(--color-neg); }
+  .invest-status.warn { color: #b7791f; }
+  .fineprint { font-size: 0.8125rem; color: var(--color-text-faint); margin-top: 0.75rem; }
 
   .invest-summary { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: var(--space-sm); }
-  .sum-chip { background: rgba(13, 13, 15, 0.55); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0.4rem 0.9rem; font-size: 0.8125rem; color: var(--color-text-light); }
+  .sum-chip { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0.4rem 0.9rem; font-size: 0.8125rem; color: var(--color-text-light); font-weight: 600; }
   .sum-chip b { color: var(--color-text); }
-  .sum-chip .pos { color: #6ee7b7; }
-  .sum-chip .neg { color: #fca5a5; }
-  .sum-chip .muted { color: var(--color-text-light); opacity: 0.7; font-weight: 400; }
-  .sum-chip.warn { border-color: rgba(252, 211, 77, 0.4); color: #fcd34d; }
+  .sum-chip .pos { color: var(--color-pos); }
+  .sum-chip .neg { color: var(--color-neg); }
+  .sum-chip .muted { color: var(--color-text-faint); font-weight: 500; }
+  .sum-chip.warn { border-color: rgba(183, 121, 31, 0.4); color: #b7791f; }
 
-  .chart-wrap { margin-bottom: var(--space-sm); border: 1px solid var(--color-border); border-radius: var(--radius); background: rgba(13, 13, 15, 0.4); padding: var(--space-sm); }
+  .chart-wrap { margin-bottom: var(--space-sm); border: 1px solid var(--color-border); border-radius: var(--radius); background: #fff; padding: var(--space-sm); }
   #invest-chart { width: 100%; display: block; }
   .chart-legend { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 0.6rem; padding: 0 0.25rem; }
-  .legend-item { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--color-text-light); }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--color-text-light); font-weight: 600; }
   .legend-item .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; background: var(--color-text-light); }
   .legend-item .swatch.bench { background: var(--color-accent); }
 
-  .table-scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius); }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius); background: #fff; }
   .invest-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
   .invest-table th, .invest-table td { padding: 0.65rem 0.75rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border); }
-  .invest-table th { color: var(--color-text-light); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(13, 13, 15, 0.5); }
+  .invest-table th { color: var(--color-text-faint); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; background: var(--color-surface); }
   .invest-table tr:last-child td { border-bottom: none; }
   .invest-table .tick b { color: var(--color-text); }
-  .invest-table .muted { color: var(--color-text-light); opacity: 0.8; }
+  .invest-table .muted { color: var(--color-text-faint); }
   .invest-table .small { font-size: 0.75rem; }
-  .invest-table .pos { color: #6ee7b7; }
-  .invest-table .neg { color: #fca5a5; }
+  .invest-table .pos { color: var(--color-pos); }
+  .invest-table .neg { color: var(--color-neg); }
   .invest-table .note { cursor: help; margin-left: 0.35rem; }
   .row-actions { text-align: right; }
-  .icon-btn { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; line-height: 1; transition: all 0.15s ease; }
-  .icon-btn:hover { color: #fca5a5; border-color: rgba(252, 165, 165, 0.4); background: rgba(196, 30, 58, 0.08); }
-  .invest-empty { padding: var(--space-md); text-align: center; border: 1px dashed var(--color-border); border-radius: var(--radius); }
+  .icon-btn { background: #fff; border: 1px solid var(--color-border-strong); color: var(--color-text-light); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; line-height: 1; transition: all 0.15s ease; }
+  .icon-btn:hover { color: var(--color-neg); border-color: rgba(217, 48, 37, 0.4); background: rgba(217, 48, 37, 0.06); }
+  .invest-empty { padding: var(--space-md); text-align: center; border: 1px dashed var(--color-border-strong); border-radius: var(--radius); }
   .invest-footer { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-sm); }
-  .btn-sm { padding: 0.5rem 1rem; font-size: 0.8125rem; }
-  .btn-ghost { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); }
-  .btn-ghost:hover { color: #fca5a5; border-color: rgba(252, 165, 165, 0.4); background: rgba(196, 30, 58, 0.06); transform: none; }
+  .btn-sm { padding: 0.5rem 1rem; font-size: 0.8125rem; border-radius: var(--radius-pill); }
+  .btn-ghost { background: transparent; border: 1px solid var(--color-border-strong); color: var(--color-text-light); cursor: pointer; font-family: var(--font-body); font-weight: 600; }
+  .btn-ghost:hover { color: var(--color-text); border-color: var(--color-text-faint); background: var(--color-surface); }
 </style>
 </Layout>

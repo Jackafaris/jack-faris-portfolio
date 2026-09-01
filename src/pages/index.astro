@@ -9,55 +9,68 @@ export const prerender = true;
 <Layout>
   <section class="hero">
     <div class="container">
-      <div class="hero-grid">
-        <div class="hero-image-container">
-          <img src="/images/jack-headshot.jpg" alt="Jack Faris headshot" width="280" height="280" />
-        </div>
-
-        <div class="hero-text">
+      <div class="home-hero">
+        <div class="home-hero-text">
           <p class="hero-eyebrow">{site.tagline}</p>
           <h1>{site.name}</h1>
           <p class="hero-sub">Medtronic Hugo RAS specialist · Sales leader · AI builder</p>
-          <p>
-            I help hospitals and healthcare systems adopt robotic surgery, and I build practical AI tools that solve real problems.
+          <p class="home-lead">
+            I help hospitals and healthcare systems adopt robotic surgery, and I build
+            practical AI tools that solve real problems.
           </p>
-
           <div class="hero-buttons">
-            <a href="/work" class="btn">View My Work</a>
+            <a href="/work" class="btn">
+              View My Work
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </a>
             <a href="/resume" class="btn btn-secondary">Download Resume</a>
             <a href="/contact" class="btn btn-secondary">Get in Touch</a>
           </div>
+        </div>
+        <div class="home-hero-photo">
+          <img src="/images/jack-headshot.jpg" alt="Jack Faris headshot" width="300" height="360" />
+          <span class="photo-chip">Hugo RAS · Certified</span>
         </div>
       </div>
     </div>
   </section>
 
-  <section>
+  <section class="alt-section">
     <div class="container">
       <div class="section-header">
-        <h2 class="text-gradient-red">Current Focus</h2>
-        <p>Medtronic Hugo RAS Platform — certified specialist running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
+        <h2>Current Focus</h2>
+        <p>Where the time goes right now.</p>
       </div>
 
-      <div class="grid grid-2">
-        <div class="card glass-panel">
+      <div class="grid grid-3">
+        <div class="card">
           <div class="card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
               <path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" />
+            </svg>
+          </div>
+          <h3>Medtronic Hugo RAS Platform</h3>
+          <p>Certified specialist running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
+              <path d="M3 17l6-6 4 4 8-8M14 7h7v7" />
             </svg>
           </div>
           <h3>Medical Devices</h3>
           <p>Certified in Medtronic's Hugo Robotic-Assisted Surgery platform with direct OR case support experience.</p>
         </div>
 
-        <div class="card glass-panel">
+        <div class="card">
           <div class="card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
               <rect x="4" y="7" width="16" height="12" rx="2" />
               <path d="M9 7V5a3 3 0 0 1 6 0v2M8 12h.01M12 12h.01M16 12h.01" />
             </svg>
           </div>
-          <h3>AI & Technology</h3>
+          <h3>AI &amp; Technology</h3>
           <p>Building OpenClaw — an AI agent platform that helps small businesses and individuals automate meaningful work.</p>
         </div>
       </div>
@@ -67,12 +80,12 @@ export const prerender = true;
   <section>
     <div class="container">
       <div class="section-header">
-        <h2 class="text-gradient-red">How I Can Help</h2>
+        <h2>How I Can Help</h2>
         <p>What organizations get when they work with me.</p>
       </div>
 
       <div class="grid grid-3">
-        <div class="card glass-panel">
+        <div class="card">
           <div class="card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
               <path d="M12 3v18M3 12h18M6 6l12 12M18 6L6 18" />
@@ -82,7 +95,7 @@ export const prerender = true;
           <p>Platform-certified Hugo RAS expertise — hands-on OR case support, surgeon and staff training, and program rollout that delivers measurable clinical value.</p>
         </div>
 
-        <div class="card glass-panel">
+        <div class="card">
           <div class="card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
               <path d="M3 17l6-6 4 4 8-8M14 7h7v7" />
@@ -92,7 +105,7 @@ export const prerender = true;
           <p>Translating complex technology into the outcomes administrators and clinicians care about — value propositions, business cases, and adoption roadmaps.</p>
         </div>
 
-        <div class="card glass-panel">
+        <div class="card">
           <div class="card-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75">
               <rect x="4" y="7" width="16" height="12" rx="2" />
@@ -107,17 +120,92 @@ export const prerender = true;
   </section>
 
   <ExperienceSection />
-
   <Testimonials />
 
-  <section>
+  <section class="alt-section">
     <div class="container">
       <div class="section-header">
-        <h2 class="text-gradient-red">Mission</h2>
+        <h2>Mission</h2>
       </div>
       <div class="mission-panel glass-panel">
-        <p>To solve complex clinical and business problems through technology — and to help organizations adopt it with confidence.</p>
+        <p>To solve complex clinical and business problems through technology — and to help organizations adopt it with <em>confidence</em>.</p>
       </div>
     </div>
   </section>
 </Layout>
+
+<style>
+  .home-hero {
+    display: grid;
+    grid-template-columns: 1.25fr 0.75fr;
+    gap: var(--space-lg);
+    align-items: center;
+  }
+
+  .home-lead {
+    max-width: 52ch;
+  }
+
+  .home-hero-photo {
+    position: relative;
+    justify-self: center;
+  }
+
+  .home-hero-photo img {
+    width: 300px;
+    height: 360px;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    border: 4px solid #fff;
+    box-shadow: var(--shadow-card);
+  }
+
+  .photo-chip {
+    position: absolute;
+    top: 16px;
+    left: -18px;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-card);
+    padding: 8px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--color-text);
+    white-space: nowrap;
+  }
+
+  .alt-section {
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  @media (max-width: 880px) {
+    .home-hero {
+      grid-template-columns: 1fr;
+      text-align: center;
+      gap: var(--space-md);
+    }
+    .home-lead {
+      margin: 0 auto 1.5rem;
+    }
+    .hero-buttons {
+      justify-content: center;
+    }
+    .home-hero-photo {
+      order: -1;
+    }
+    .home-hero-photo img {
+      width: 220px;
+      height: 260px;
+    }
+    .photo-chip {
+      left: 50%;
+      transform: translateX(-50%);
+      top: auto;
+      bottom: -16px;
+    }
+  }
+</style>
