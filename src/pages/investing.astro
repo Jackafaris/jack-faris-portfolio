@@ -155,426 +155,92 @@ export const prerender = true;
     </div>
   </section>
 
-<script is:inline>
-(() => {
-  'use strict';
-  const BENCH_DEFAULT = '^GSPC';
-  const $ = (sel) => document.querySelector(sel);
+<script>
+  import {
+    Board,
+    errMsg,
+    usd2,
+    type BoardDeps,
+    type Position,
+  } from '../lib/investing/index';
 
-  const form = $('#add-position-form');
+  const $ = (sel: string) => document.querySelector(sel) as HTMLElement;
+
+  function storedOwnerCode(): string {
+    try { return sessionStorage.getItem('jfpicks.owner') ?? ''; } catch { return ''; }
+  }
+
+  const board = new Board({
+    positionsBody: $('#positions-body'),
+    emptyEl: $('#positions-empty'),
+    tableEl: $('#positions-table'),
+    summaryEl: $('#portfolio-summary'),
+    canvas: $('#invest-chart'),
+    legendEl: $('#chart-legend'),
+    compareSelect: $('#compare-select'),
+    toggleLines: $('#toggle-position-lines'),
+    priceUpdatedEl: $('#price-updated'),
+    ownerPanel: $('#owner-panel'),
+    ownerLock: $('#owner-lock'),
+    boardTitle: $('#board-title'),
+    ownerStatusEl: $('#owner-status'),
+    confirm: (m: string) => window.confirm(m),
+  } satisfies BoardDeps);
+  board.ownerCode = storedOwnerCode();
+
+  // ---------- owner unlock / lock ----------
   const ownerForm = $('#owner-form');
   const ownerCodeEl = $('#owner-code');
-  const ownerStatusEl = $('#owner-status');
-  const ownerPanel = $('#owner-panel');
-  const ownerLock = $('#owner-lock');
-  const boardTitle = $('#board-title');
-  const statusEl = $('#add-position-status');
-  const addBtn = $('#add-position-btn');
-  const positionsBody = $('#positions-body');
-  const emptyEl = $('#positions-empty');
-  const summaryEl = $('#portfolio-summary');
-  const canvas = $('#invest-chart');
-  const legendEl = $('#chart-legend');
-  const compareSelect = $('#compare-select');
-  const toggleLines = $('#toggle-position-lines');
-  const priceUpdatedEl = $('#price-updated');
-
-  let positions = [];
-  let ownerCode = (function () { try { return sessionStorage.getItem('jfpicks.owner') || ''; } catch { return ''; } })();
-  let bench = null; // { data, error }
-  let benchKey = '';
-  let benchError = '';
-  let positionLines = new Map(); // symbol -> {color, data|error}
-  const palette = ['#00a699', '#2f6fed', '#e8590c', '#9c36b5', '#0ca678', '#d6336c', '#1098ad', '#f59f00', '#5f3dc4', '#c2255c'];
-
-  const isOwner = () => ownerCode.length > 0;
-
-  // ---------- owner API ----------
-  async function api(action, extra = {}) {
-    const res = await fetch('/api/picks', {
-      method: action === 'get' ? 'GET' : 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: action === 'get' ? undefined : JSON.stringify({ code: ownerCode, action, ...extra }),
-    });
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) {
-      const err = new Error(body.error || `HTTP ${res.status}`);
-      err.status = res.status;
-      throw err;
-    }
-    return body;
-  }
-
-  async function loadPositions() {
-    const body = await api('get');
-    positions = Array.isArray(body.positions) ? body.positions : [];
-  }
-
-  // ---------- price fetching ----------
-  async function fetchPrice(symbol, from) {
-    const q = new URLSearchParams({ symbol });
-    if (from) q.set('from', from);
-    const res = await fetch('/api/stock-price?' + q.toString());
-    const body = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
-    return body;
-  }
-
-  // ---------- owner-mode UI ----------
-  function applyMode() {
-    if (isOwner()) {
-      ownerLock.classList.add('hidden');
-      ownerPanel.classList.remove('hidden');
-      boardTitle.textContent = "Jack's picks (editing)";
-      $('#p-date').value = $('#p-date').value || new Date().toISOString().slice(0, 10);
-    } else {
-      ownerPanel.classList.add('hidden');
-      ownerLock.classList.remove('hidden');
-      boardTitle.textContent = "Jack's picks";
-    }
-    renderAll();
-  }
-  function setOwnerStatus(kind, msg) {
-    ownerStatusEl.className = 'invest-status ' + kind;
-    ownerStatusEl.textContent = msg;
-  }
 
   ownerForm.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const code = ownerCodeEl.value.trim();
-    if (!code) return setOwnerStatus('warn', 'Enter your owner code.');
+    if (!code) { board.setOwnerStatus('warn', 'Enter your owner code.'); return; }
     $('#unlock-btn').disabled = true;
-    setOwnerStatus('busy', 'Checking code…');
+    board.setOwnerStatus('busy', 'Checking code…');
     try {
-      await api('auth', { code });
+      const { picksAction } = await import('../lib/investing/api');
+      await picksAction('auth', { code });
     } catch (e) {
       $('#unlock-btn').disabled = false;
-      return setOwnerStatus('err', 'That code is not right.');
+      board.setOwnerStatus('err', 'That code is not right.');
+      return;
     }
-    ownerCode = code;
-    try { sessionStorage.setItem('jfpicks.owner', ownerCode); } catch { /* private mode */ }
-    setOwnerStatus('ok', 'Unlocked.');
-    applyMode();
-    await refreshAll();
+    board.ownerCode = code;
+    try { sessionStorage.setItem('jfpicks.owner', code); } catch { /* private mode */ }
+    board.setOwnerStatus('ok', 'Unlocked.');
+    board.applyMode();
+    await board.refreshAll().catch(() => board.renderAll());
   });
 
   $('#lock-btn').addEventListener('click', () => {
-    ownerCode = '';
+    board.ownerCode = '';
     try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
     ownerCodeEl.value = '';
-    setOwnerStatus('', '');
-    applyMode();
+    board.setOwnerStatus('', '');
+    board.applyMode();
   });
 
-  // ---------- rendering ----------
-  function summaryData() {
-    let cost = 0, value = 0, ok = 0;
-    for (const p of positions) {
-      const line = positionLines.get(p.symbol);
-      cost += p.price * p.shares;
-      const cur = line && line.data ? line.data.price : null;
-      if (Number.isFinite(cur)) { value += cur * p.shares; ok++; }
-    }
-    return { cost, value, ok, gain: ok ? value - cost : null };
-  }
-
-  const usd0 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-  const usd2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtPct = (n) => (n > 0 ? '+' : '') + n.toFixed(1) + '%';
-  const fmtDate = (iso) => {
-    if (!iso) return '—';
-    const [y, m, d] = iso.split('-');
-    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-
-  function renderSummary() {
-    const s = summaryData();
-    const parts = [];
-    if (positions.length) {
-      parts.push(`<span class="sum-chip">Tracked: <b>${s.ok}/${positions.length}</b> priced</span>`);
-      if (s.gain !== null) {
-        const cls = s.gain >= 0 ? 'pos' : 'neg';
-        parts.push(`<span class="sum-chip">P&amp;L: <b class="${cls}">${s.gain >= 0 ? '+' : ''}${usd2(s.gain)}</b> <span class="muted">(${usd0(s.cost)} invested)</span></span>`);
-      }
-      if (bench && bench.data) {
-        const earliest = [...positions].sort((a, b) => (a.date < b.date ? -1 : 1))[0];
-        const pct = benchPctSince(earliest.date);
-        if (pct !== null) {
-          const cls = pct >= 0 ? 'pos' : 'neg';
-          parts.push(`<span class="sum-chip">${esc(compareSelect.options[compareSelect.selectedIndex].text)} since first buy: <b class="${cls}">${fmtPct(pct)}</b></span>`);
-        }
-      }
-    }
-    if (benchError) parts.push(`<span class="sum-chip warn">Benchmark data unavailable — check back shortly</span>`);
-    summaryEl.innerHTML = parts.join('');
-  }
-
-  function benchPctSince(dateStr) {
-    const d = bench.data;
-    if (!d || !d.history.length || !dateStr) return null;
-    const idx = d.history.findIndex((h) => h.date >= dateStr);
-    if (idx < 0) return null;
-    const base = d.history[idx].close;
-    const last = d.history[d.history.length - 1].close;
-    return (last / base - 1) * 100;
-  }
-
-  function positionPctSince(dateStr, history) {
-    const idx = history.findIndex((h) => h.date >= dateStr);
-    if (idx < 0) return null;
-    const base = history[idx].close;
-    const last = history[history.length - 1].close;
-    return (last / base - 1) * 100;
-  }
-
-  function renderTable() {
-    if (!positions.length) {
-      positionsBody.innerHTML = '';
-      emptyEl.classList.remove('hidden');
-      $('#positions-table').classList.add('hidden');
-      return;
-    }
-    emptyEl.classList.add('hidden');
-    $('#positions-table').classList.remove('hidden');
-
-    const benchHist = bench && bench.data ? bench.data.history : [];
-    let rows = '';
-    for (const p of positions) {
-      const line = positionLines.get(p.symbol);
-      const loading = !line;
-      const err = line && line.error && !line.data;
-      const cur = line && line.data ? line.data.price : null;
-      const hist = line && line.data ? line.data.history : [];
-      const pPct = !err && hist.length ? positionPctSince(p.date, hist) : null;
-      const bIdx = benchHist.findIndex((h) => h.date >= p.date);
-      const bPct = bIdx >= 0 ? (benchHist[benchHist.length - 1].close / benchHist[bIdx].close - 1) * 100 : null;
-
-      const pickCell = loading ? '<span class="muted">…</span>'
-        : err ? `<span class="neg">${esc(line.error)}</span>`
-        : (pPct === null ? `<span class="muted">n/a</span>` : `<b class="${pPct >= 0 ? 'pos' : 'neg'}">${fmtPct(pPct)}</b>`);
-      const benchCell = bPct === null ? '<span class="muted">—</span>' : `<b class="${bPct >= 0 ? 'pos' : 'neg'}">${fmtPct(bPct)}</b>`;
-      const diffCell = pPct === null || bPct === null ? '<span class="muted">—</span>'
-        : `<b class="${pPct - bPct >= 0 ? 'pos' : 'neg'}">${pPct - bPct >= 0 ? '+' : ''}${(pPct - bPct).toFixed(1)}pp</b>`;
-
-      const valueCell = cur === null ? '<span class="muted">—</span>' : usd0(cur * p.shares);
-      const delCell = isOwner()
-        ? `<button class="icon-btn del-btn" data-del="${esc(p.id)}" title="Remove ${esc(p.symbol)}" aria-label="Remove ${esc(p.symbol)}">×</button>`
-        : '';
-      rows += `<tr>
-        <td class="tick"><b>${esc(p.symbol)}</b>${p.name && p.name !== p.symbol ? `<span class="muted"> · ${esc(p.name)}</span>` : ''}${p.note ? `<span class="note" title="${esc(p.note)}">📝</span>` : ''}</td>
-        <td>${fmtDate(p.date)}</td>
-        <td>${usd2(p.price)}</td>
-        <td>${cur === null ? '<span class="muted">—</span>' : usd2(cur)}${line && line.data && line.data.dayChangePct !== null ? `<span class="muted small"> (${line.data.dayChangePct >= 0 ? '+' : ''}${line.data.dayChangePct.toFixed(1)}% today)</span>` : ''}</td>
-        <td>${p.shares}</td>
-        <td>${valueCell}</td>
-        <td>${pickCell}</td>
-        <td>${benchCell}</td>
-        <td>${diffCell}</td>
-        <td class="row-actions">${delCell}</td>
-      </tr>`;
-    }
-    positionsBody.innerHTML = rows;
-  }
-
-  function renderLegend() {
-    const items = [];
-    if (bench && bench.data) items.push(`<span class="legend-item"><i class="swatch bench"></i> ${esc(bench.data.name || benchKey)}</span>`);
-    if (toggleLines.checked) {
-      for (const p of positions) {
-        const line = positionLines.get(p.symbol);
-        if (!line) continue;
-        items.push(`<span class="legend-item"><i class="swatch" style="background:${line.color}"></i> ${esc(p.symbol)} (bought ${fmtDate(p.date)})</span>`);
-      }
-    }
-    legendEl.innerHTML = items.join('');
-  }
-
-  // ---------- chart ----------
-  function setupCanvas() {
-    const dpr = window.devicePixelRatio || 1;
-    const w = canvas.clientWidth || canvas.parentElement.clientWidth;
-    const h = 360;
-    canvas.width = w * dpr;
-    canvas.height = h * dpr;
-    canvas.style.height = h + 'px';
-    const ctx = canvas.getContext('2d');
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return { ctx, w, h };
-  }
-
-  const GRID_COLOR = 'rgba(0,0,0,0.06)';
-  const LABEL_COLOR = 'rgba(0,0,0,0.45)';
-  const ZERO_COLOR = 'rgba(0,0,0,0.25)';
-  const BENCH_COLOR = '#00a699';
-
-  function drawChart() {
-    const { ctx, w, h } = setupCanvas();
-    ctx.clearRect(0, 0, w, h);
-    const pad = { l: 64, r: 16, t: 16, b: 34 };
-    const plotW = w - pad.l - pad.r;
-    const plotH = h - pad.t - pad.b;
-
-    const series = [];
-    if (bench && bench.data && bench.data.history.length > 1) {
-      const hist = bench.data.history;
-      const base = hist[0].close;
-      series.push({ name: 'Benchmark', color: BENCH_COLOR, width: 2.5, points: hist.map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
-    }
-    if (toggleLines.checked) {
-      for (const p of positions) {
-        const line = positionLines.get(p.symbol);
-        if (!line || !line.data || line.data.history.length < 2) continue;
-        const hist = line.data.history;
-        const idx = hist.findIndex((pt) => pt.date >= p.date);
-        const startIdx = idx < 0 ? 0 : idx;
-        const base = hist[startIdx].close;
-        if (startIdx >= hist.length) continue;
-        series.push({ name: p.symbol, color: line.color, width: 1.8, points: hist.slice(startIdx).map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
-      }
-    }
-    if (!series.length) {
-      ctx.fillStyle = 'rgba(0,0,0,0.4)';
-      ctx.font = '14px DM Sans, sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(positions.length ? 'Fetching prices…' : 'No picks on the board yet', w / 2, h / 2);
-      return;
-    }
-
-    const allDates = [...new Set(series.flatMap((s) => s.points.map((p) => p.date)))].sort();
-    const dateIndex = new Map(allDates.map((d, i) => [d, i]));
-    let min = Infinity, max = -Infinity;
-    for (const s of series) for (const p of s.points) { min = Math.min(min, p.val); max = Math.max(max, p.val); }
-    if (min > max) { min = 0; max = 0; }
-    const span = Math.max(max - min, 4);
-    min -= span * 0.08; max += span * 0.08;
-
-    const xOf = (d) => pad.l + (allDates.length < 2 ? 0 : (dateIndex.get(d) / (allDates.length - 1)) * plotW);
-    const yOf = (v) => pad.t + (1 - (v - min) / (max - min)) * plotH;
-
-    ctx.font = '11px DM Sans, sans-serif';
-    ctx.textAlign = 'right';
-    ctx.textBaseline = 'middle';
-    const gridSteps = 5;
-    for (let i = 0; i <= gridSteps; i++) {
-      const v = min + (i / gridSteps) * (max - min);
-      const y = yOf(v);
-      ctx.strokeStyle = GRID_COLOR;
-      ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
-      ctx.fillStyle = LABEL_COLOR;
-      ctx.fillText((v > 0 ? '+' : '') + v.toFixed(0) + '%', pad.l - 8, y);
-    }
-    if (min < 0 && max > 0) {
-      const y0 = yOf(0);
-      ctx.strokeStyle = ZERO_COLOR;
-      ctx.setLineDash([4, 4]);
-      ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(w - pad.r, y0); ctx.stroke();
-      ctx.setLineDash([]);
-    }
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    const xSteps = Math.min(6, allDates.length - 1);
-    for (let i = 0; i <= xSteps; i++) {
-      const d = allDates[Math.round((i / xSteps) * (allDates.length - 1))];
-      ctx.fillStyle = LABEL_COLOR;
-      ctx.fillText(fmtDate(d), xOf(d), h - pad.b + 8);
-    }
-    for (const s of series) {
-      ctx.strokeStyle = s.color;
-      ctx.lineWidth = s.width;
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      let started = false;
-      for (const p of s.points) {
-        const x = xOf(p.date), y = yOf(p.val);
-        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-      const endPt = s.points[s.points.length - 1];
-      ctx.fillStyle = s.color;
-      ctx.beginPath(); ctx.arc(xOf(endPt.date), yOf(endPt.val), 3, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'alphabetic';
-    ctx.font = '10px DM Sans, sans-serif';
-    ctx.fillText('Index: 0% = value on the earliest date shown. Position lines start at their buy date.', pad.l, h - 4);
-  }
-
-  // ---------- data loading ----------
-  async function loadBenchmark() {
-    const key = compareSelect.value;
-    if (key === benchKey && bench) { renderAll(); return; }
-    benchKey = key;
-    benchError = '';
-    bench = null;
-    renderSummary(); renderTable(); drawChart();
-    try {
-      const data = await fetchPrice(key, earliestDate());
-      bench = { data };
-    } catch (e) {
-      benchError = e.message;
-      bench = null;
-    }
-    renderAll();
-  }
-
-  function earliestDate() {
-    if (!positions.length) return null;
-    return [...positions].sort((a, b) => (a.date < b.date ? -1 : 1))[0].date;
-  }
-
-  async function loadPositionLines() {
-    const uniqueSymbols = [...new Set(positions.map((p) => p.symbol))].sort();
-    for (const p of positions) {
-      const color = palette[uniqueSymbols.indexOf(p.symbol) % palette.length];
-      if (positionLines.has(p.symbol)) { positionLines.get(p.symbol).color = color; continue; }
-      const entry = { color, data: null, error: '' };
-      positionLines.set(p.symbol, entry);
-      const firstBuy = [...positions].filter((q) => q.symbol === p.symbol).sort((a, b) => (a.date < b.date ? -1 : 1))[0];
-      const start = new Date(firstBuy.date + 'T00:00:00Z');
-      start.setUTCDate(start.getUTCDate() - 45);
-      const from = start.toISOString().slice(0, 10);
-      fetchPrice(p.symbol, from)
-        .then((data) => { entry.data = data; })
-        .catch((e) => { entry.error = e.message; })
-        .finally(() => renderAll());
-    }
-    for (const sym of [...positionLines.keys()]) {
-      if (!uniqueSymbols.includes(sym)) positionLines.delete(sym);
-    }
-  }
-
-  function renderAll() {
-    renderSummary();
-    renderTable();
-    renderLegend();
-    drawChart();
-    priceUpdatedEl.textContent = bench && bench.data
-      ? `Prices from Yahoo Finance · benchmark ${esc(bench.data.name)} as of ${fmtDate(new Date(bench.data.marketTime * 1000).toISOString().slice(0, 10))}`
-      : '';
-  }
-
-  async function refreshAll() {
-    await loadPositions();
-    await Promise.all([loadPositionLines(), loadBenchmark()]);
-  }
-
-  // ---------- owner actions ----------
-  function setAddStatus(kind, msg) {
+  // ---------- add pick ----------
+  const form = $('#add-position-form');
+  const addBtn = $('#add-position-btn');
+  const statusEl = $('#add-position-status');
+  const setAddStatus = (kind: string, msg: string) => {
     statusEl.className = 'invest-status ' + kind;
     statusEl.textContent = msg;
-  }
+  };
+  const today = () => new Date().toISOString().slice(0, 10);
+  $('#p-date').value = today();
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const symbol = $('#p-symbol').value.trim().toUpperCase();
-    let name = $('#p-name').value.trim();
-    const price = parseFloat($('#p-price').value.replace(/[^0-9.]/g, ''));
-    const date = $('#p-date').value;
-    const sharesRaw = $('#p-shares').value.replace(/[^0-9.]/g, '');
+    const symbol = ($('#p-symbol').value as string).trim().toUpperCase();
+    const name = ($('#p-name').value as string).trim();
+    const price = parseFloat(($('#p-price').value as string).replace(/[^0-9.]/g, ''));
+    const date = $('#p-date').value as string;
+    const sharesRaw = ($('#p-shares').value as string).replace(/[^0-9.]/g, '');
     const shares = sharesRaw ? parseFloat(sharesRaw) : 1;
-    const note = $('#p-note').value.trim();
+    const note = ($('#p-note').value as string).trim();
 
     if (!/^[A-Z0-9.\-^]{1,12}$/.test(symbol)) return setAddStatus('warn', 'That ticker looks off — use letters/digits like AAPL, NVDA, or ^GSPC.');
     if (!Number.isFinite(price) || price <= 0) return setAddStatus('warn', 'Enter a valid buy price in USD.');
@@ -583,114 +249,80 @@ export const prerender = true;
 
     setAddStatus('busy', `Checking price for ${symbol}…`);
     addBtn.disabled = true;
-    let livePrice = null;
     try {
-      const data = await fetchPrice(symbol);
-      livePrice = data.price;
-      if (!name) { name = data.name || ''; $('#p-name').value = name; }
+      await board.addPick({ symbol, name, price, date, shares, note });
+      if (name !== ($('#p-name').value as string)) { /* board.addPick may have filled the name from the API */ }
+      form.reset();
+      $('#p-date').value = today();
+      setAddStatus('ok', `Added ${symbol} @ ${usd2(price)} — live for everyone.`);
     } catch (e) {
+      if (e instanceof Error && e.message.startsWith("Couldn't verify")) setAddStatus('err', e.message);
+      else setAddStatus('err', 'Could not save: ' + errMsg(e));
+    } finally {
       addBtn.disabled = false;
-      return setAddStatus('err', `Couldn't verify "${symbol}": ${e.message}`);
     }
-    if (Math.abs(livePrice - price) / livePrice > 0.9) {
-      const ok = confirm(`${symbol} last traded at ${usd2(livePrice)}, but you entered ${usd2(price)}.\n\nOK = save as typed. Cancel = go back and fix it.`);
-      if (!ok) { addBtn.disabled = false; return setAddStatus('warn', 'Cancelled — entry price looks off.'); }
-    }
-    try {
-      const body = await api('add', { position: { symbol, name, price, date, shares, note } });
-      positions = body.positions;
-    } catch (e) {
-      addBtn.disabled = false;
-      if (e.status === 401) { ownerCode = ''; try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ } applyMode(); }
-      return setAddStatus('err', 'Could not save: ' + e.message);
-    }
-    form.reset();
-    $('#p-date').value = new Date().toISOString().slice(0, 10);
-    addBtn.disabled = false;
-    setAddStatus('ok', `Added ${symbol} @ ${usd2(price)} — live for everyone.`);
-    await Promise.all([loadPositionLines(), loadBenchmark()]);
   });
 
-  positionsBody.addEventListener('click', async (ev) => {
-    const btn = ev.target.closest('[data-del]');
+  // ---------- remove pick (event delegation) ----------
+  $('#positions-body').addEventListener('click', async (ev) => {
+    const btn = (ev.target as Element).closest('[data-del]');
     if (!btn) return;
-    const id = btn.getAttribute('data-del');
-    const p = positions.find((x) => x.id === id);
-    if (!p) return;
-    if (!confirm(`Remove ${p.symbol} (bought ${fmtDate(p.date)} @ ${usd2(p.price)})?`)) return;
     try {
-      const body = await api('remove', { id });
-      positions = body.positions;
+      await board.removePick((btn as HTMLElement).getAttribute('data-del') ?? '');
     } catch (e) {
-      return alert('Could not remove: ' + e.message);
+      window.alert('Could not remove: ' + errMsg(e));
     }
-    renderAll();
-    await Promise.all([loadPositionLines(), loadBenchmark()]);
   });
 
-  compareSelect.addEventListener('change', () => loadBenchmark());
-  toggleLines.addEventListener('change', () => { renderLegend(); drawChart(); });
+  // ---------- tools ----------
+  $('#compare-select').addEventListener('change', () => { board.loadBenchmark().catch(() => board.renderAll()); });
+  $('#toggle-position-lines').addEventListener('change', () => board.renderAll());
 
   $('#export-btn').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ app: 'jackfaris-picks', version: 1, exportedAt: new Date().toISOString(), positions }, null, 2)], { type: 'application/json' });
+    const payload = { app: 'jackfaris-picks', version: 1, exportedAt: new Date().toISOString(), positions: board.positions };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `jacks-picks-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `jacks-picks-${today()}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   });
 
   $('#import-btn').addEventListener('click', () => $('#import-file').click());
   $('#import-file').addEventListener('change', async (ev) => {
-    const file = ev.target.files[0];
+    const file = (ev.target as HTMLInputElement).files?.[0];
     if (!file) return;
     try {
-      const data = JSON.parse(await file.text());
-      const list = Array.isArray(data) ? data : data.positions;
+      const data: unknown = JSON.parse(await file.text());
+      const list = Array.isArray(data) ? data : (data as { positions?: unknown[] }).positions;
       if (!Array.isArray(list)) throw new Error('No positions array found');
-      if (!confirm(`Import ${list.length} pick(s) and REPLACE the whole board?`)) { ev.target.value = ''; return; }
-      const body = await api('replace', { positions: list });
-      positions = body.positions;
+      await board.replaceBoard(list as Position[]);
+      (ev.target as HTMLInputElement).value = '';
     } catch (e) {
-      return alert('Import failed: ' + e.message);
+      window.alert('Import failed: ' + errMsg(e));
     }
-    ev.target.value = '';
-    await Promise.all([loadPositionLines(), loadBenchmark()]);
   });
 
   $('#clear-btn').addEventListener('click', async () => {
-    if (!positions.length) return;
-    if (!confirm('Clear ALL picks from the board? (Export first if you want a backup.)')) return;
     try {
-      const body = await api('clear', {});
-      positions = body.positions;
+      await board.clearBoard();
     } catch (e) {
-      return alert('Could not clear: ' + e.message);
+      window.alert('Could not clear: ' + errMsg(e));
     }
-    positionLines.clear();
-    renderAll();
-    loadBenchmark();
   });
 
-  let resizeTimer = null;
-  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawChart, 150); });
+  // ---------- resize ----------
+  let resizeTimer: ReturnType<typeof setTimeout> | null = null;
+  window.addEventListener('resize', () => {
+    if (resizeTimer) clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => board.renderAll(), 150);
+  });
 
   // ---------- init ----------
-  $('#p-date').value = new Date().toISOString().slice(0, 10);
-  applyMode();
-  refreshAll()
-    .then(() => {
-      // if a saved owner code is present, re-verify it quietly
-      if (isOwner()) {
-        api('auth', { code: ownerCode }).catch(() => {
-          ownerCode = '';
-          try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
-          applyMode();
-        });
-      }
-    })
-    .catch(() => renderAll());
-})();
+  board.applyMode();
+  board.refreshAll()
+    .then(async () => { await board.reverifyOwnerCode(); })
+    .catch(() => board.renderAll());
 </script>
 
 <style>
