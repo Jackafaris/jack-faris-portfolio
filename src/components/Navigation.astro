@@ -55,14 +55,14 @@ const isActive = (href: string) => {
       nav.classList.remove('nav-open');
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'Open menu');
-      document.body.classList.remove('nav-menu-open');
+      document.documentElement.classList.remove('nav-menu-open');
     };
 
     toggle.addEventListener('click', () => {
       const isOpen = nav.classList.toggle('nav-open');
       toggle.setAttribute('aria-expanded', String(isOpen));
       toggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
-      document.body.classList.toggle('nav-menu-open', isOpen);
+      document.documentElement.classList.toggle('nav-menu-open', isOpen);
     });
 
     navLinks.querySelectorAll('a').forEach((link) => {

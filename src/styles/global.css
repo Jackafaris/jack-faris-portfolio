@@ -46,8 +46,11 @@
 html {
   scroll-behavior: smooth;
   background-color: var(--color-bg);
-  /* iOS Safari: keep the fixed nav from escaping an ancestor scroll container */
-  overflow: clip;
+  /* iOS Safari: clip horizontal overflow on the ROOT (viewport), not the body.
+     An overflow value on <body> turns it into a scroll container, and iOS
+     WebKit then lets position:fixed elements (nav, mobile menu) scroll away
+     with the page. One-axis overflow keeps vertical page scrolling intact. */
+  overflow-x: hidden;
 }
 
 body {
@@ -59,10 +62,11 @@ body {
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   position: relative;
-  overflow-x: hidden;
+  /* No overflow rules here — see html. overflow-x on body breaks
+     position:fixed nav on iOS Safari. */
 }
 
-body.nav-menu-open {
+html.nav-menu-open {
   overflow: hidden;
 }
 
