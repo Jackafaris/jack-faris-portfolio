@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variant C — Bold cobalt blocks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f2efe7;            /* warm sand canvas */
+    --cobalt: #1f3cff;
+    --cobalt-deep: #1427c4;
+    --ink: #14141c;
+    --paper: #ffffff;
+    --muted: #6d6a5e;
+    --coral: #ff5b3a;
+    --mint: #cfe8d9;
+    --r: 28px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  a { color: inherit; text-decoration: none; }
+
+  /* NAV */
+  .nav { position: sticky; top: 14px; z-index: 50; margin-top: 14px; }
+  .nav-inner { background: var(--paper); border-radius: 999px; padding: 10px 12px 10px 26px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 10px 30px rgba(20,20,28,0.10); }
+  .brand { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.03em; display: flex; align-items: center; gap: 10px; }
+  .brand-mark { width: 30px; height: 30px; border-radius: 9px; background: var(--cobalt); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: 800; }
+  .nav-links { display: flex; gap: 4px; align-items: center; }
+  .nav-links a { font-weight: 600; font-size: 0.9rem; padding: 9px 16px; border-radius: 999px; color: var(--muted); transition: all .15s; }
+  .nav-links a:hover, .nav-links a.active { background: var(--bg); color: var(--ink); }
+  .nav-cta { background: var(--cobalt) !important; color: #fff !important; padding: 10px 20px !important; }
+  .nav-cta:hover { background: var(--cobalt-deep) !important; }
+
+  /* HERO — giant type on a cobalt block */
+  .hero-block { margin-top: 44px; background: var(--cobalt); border-radius: var(--r); padding: 72px 56px 64px; color: #fff; position: relative; overflow: hidden; }
+  .hero-block::before { content: ''; position: absolute; right: -120px; top: -120px; width: 420px; height: 420px; border-radius: 50%; background: rgba(255,255,255,0.08); }
+  .hero-block::after { content: ''; position: absolute; right: 60px; bottom: -160px; width: 300px; height: 300px; border-radius: 50%; background: rgba(255,255,255,0.06); }
+  .hero-kicker { display: inline-block; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; background: rgba(255,255,255,0.14); padding: 8px 16px; border-radius: 999px; margin-bottom: 30px; }
+  .hero-block h1 { font-size: clamp(3rem, 7.5vw, 5.4rem); font-weight: 800; letter-spacing: -0.04em; line-height: 0.98; margin-bottom: 24px; max-width: 14ch; }
+  .hero-block h1 span { color: #ffd84d; }
+  .hero-role { font-size: 1.15rem; font-weight: 600; opacity: 0.92; max-width: 52ch; margin-bottom: 36px; }
+  .hero-btns { display: flex; gap: 14px; flex-wrap: wrap; position: relative; z-index: 2; }
+  .btn { display: inline-flex; align-items: center; gap: 9px; padding: 14px 28px; border-radius: 999px; font-weight: 700; font-size: 0.95rem; transition: all .18s ease; cursor: pointer; }
+  .btn-light { background: #fff; color: var(--cobalt-deep); }
+  .btn-light:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(0,0,0,0.22); }
+  .btn-ghost { background: rgba(255,255,255,0.14); color: #fff; border: 1px solid rgba(255,255,255,0.3); }
+  .btn-ghost:hover { background: rgba(255,255,255,0.24); }
+
+  /* FOCUS — stacked bold cards */
+  section.focus { padding: 76px 0 20px; }
+  .section-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 34px; gap: 16px; flex-wrap: wrap; }
+  .section-head h2 { font-size: clamp(1.9rem, 4vw, 2.7rem); font-weight: 800; letter-spacing: -0.03em; }
+  .section-head h2 em { font-style: normal; color: var(--cobalt); }
+  .section-head p { color: var(--muted); font-weight: 500; }
+  .focus-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .fc { border-radius: 22px; padding: 30px 26px; min-height: 250px; display: flex; flex-direction: column; justify-content: space-between; transition: transform .18s ease; }
+  .fc:hover { transform: translateY(-4px); }
+  .fc-1 { background: var(--paper); }
+  .fc-2 { background: var(--mint); }
+  .fc-3 { background: var(--ink); color: #fff; }
+  .fc .tag { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--cobalt); }
+  .fc-3 .tag { color: #8fa0ff; }
+  .fc h3 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 10px; line-height: 1.15; }
+  .fc p { font-size: 0.92rem; opacity: 0.75; line-height: 1.5; }
+  .fc .big-ico { width: 46px; height: 46px; border-radius: 14px; background: rgba(31,60,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.3rem; margin-bottom: 18px; }
+  .fc-3 .big-ico { background: rgba(255,255,255,0.12); }
+
+  /* HELP — full-width statement cards */
+  section.help { padding: 56px 0 84px; }
+  .help-stack { display: grid; gap: 16px; }
+  .hc { border-radius: 22px; background: var(--paper); padding: 34px 38px; display: grid; grid-template-columns: 130px 1fr; gap: 28px; align-items: center; transition: all .18s; }
+  .hc:hover { box-shadow: 0 16px 40px rgba(20,20,28,0.10); transform: translateY(-2px); }
+  .hc .num { font-size: 3.4rem; font-weight: 800; letter-spacing: -0.05em; color: var(--coral); line-height: 1; }
+  .hc:nth-child(2) .num { color: var(--cobalt); }
+  .hc:nth-child(3) .num { color: #2f9e6e; }
+  .hc h3 { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .hc p { color: var(--muted); font-size: 0.98rem; max-width: 62ch; }
+
+  /* CTA band */
+  .cta { background: var(--ink); color: #fff; border-radius: var(--r); padding: 64px 56px; display: flex; justify-content: space-between; align-items: center; gap: 28px; flex-wrap: wrap; margin-bottom: 80px; }
+  .cta h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); font-weight: 800; letter-spacing: -0.03em; max-width: 22ch; line-height: 1.1; }
+  .cta h2 em { font-style: normal; color: #ffd84d; }
+  .cta .btn { background: #fff; color: var(--ink); }
+  .cta .btn:hover { background: #ffd84d; }
+
+  footer { padding-bottom: 48px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 0.88rem; font-weight: 500; flex-wrap: wrap; gap: 12px; }
+  footer .foot-links { display: flex; gap: 22px; font-weight: 700; }
+  footer a:hover { color: var(--cobalt); }
+  @media (max-width: 820px) {
+    .focus-cards { grid-template-columns: 1fr; }
+    .hc { grid-template-columns: 1fr; gap: 10px; }
+    .hero-block { padding: 52px 32px; }
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="nav">
+    <div class="nav-inner container">
+      <div class="brand"><span class="brand-mark">JF</span>Jack Faris</div>
+      <div class="nav-links">
+        <a href="#" class="active">Home</a><a href="#">About</a><a href="#">Work</a><a href="#">Investing</a>
+        <a href="#" class="nav-cta">Get in touch</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="hero-block">
+      <span class="hero-kicker">Medtronic robotics specialist · AI builder</span>
+      <h1>Jack <span>Faris</span></h1>
+      <p class="hero-role">I help hospitals and healthcare systems adopt robotic surgery — and I build practical AI tools that solve real problems.</p>
+      <div class="hero-btns">
+        <a class="btn btn-light" href="#">View my work →</a>
+        <a class="btn btn-ghost" href="#">Download resume</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="focus container">
+    <div class="section-head">
+      <h2>Current <em>focus</em></h2>
+      <p>Where the time goes right now</p>
+    </div>
+    <div class="focus-cards">
+      <div class="fc fc-1">
+        <div><div class="big-ico">⚕️</div><div class="tag">Medtronic Hugo RAS</div><h3>Robotic surgery, certified</h3></div>
+        <p>Running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
+      </div>
+      <div class="fc fc-2">
+        <div><div class="big-ico">🏥</div><div class="tag">Medical Devices</div><h3>Sales with a surgical edge</h3></div>
+        <p>Certified Hugo RAS specialist with direct OR case support — clinical trust meets commercial execution.</p>
+      </div>
+      <div class="fc fc-3">
+        <div><div class="big-ico">🤖</div><div class="tag">AI &amp; Technology</div><h3>OpenClaw</h3></div>
+        <p>An AI agent platform that helps small businesses and individuals automate meaningful work.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="help container">
+    <div class="section-head">
+      <h2>How I can <em>help</em></h2>
+      <p>What organizations get when they work with me</p>
+    </div>
+    <div class="help-stack">
+      <div class="hc">
+        <div class="num">01</div>
+        <div><h3>Clinical Robotics Support</h3><p>Platform-certified Hugo RAS expertise — hands-on OR case support, surgeon and staff training, and program rollout that delivers measurable clinical value.</p></div>
+      </div>
+      <div class="hc">
+        <div class="num">02</div>
+        <div><h3>Technology Adoption Strategy</h3><p>Translating complex technology into the outcomes administrators and clinicians care about — value propositions, business cases, and adoption roadmaps.</p></div>
+      </div>
+      <div class="hc">
+        <div class="num">03</div>
+        <div><h3>Practical AI Automation</h3><p>Design and build of AI agents that automate meaningful work — from architecture to real-world deployment, grounded in what actually moves the needle.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="container">
+    <div class="cta">
+      <h2>To solve complex clinical and business problems through technology — <em>with confidence</em>.</h2>
+      <a class="btn" href="#">Let's talk →</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+      <div>© 2026 Jack Faris · St. Louis, MO</div>
+      <div class="foot-links"><a href="#">LinkedIn</a><a href="#">Resume</a><a href="#">Investing</a></div>
+    </div>
+  </footer>
+</body>
+</html>

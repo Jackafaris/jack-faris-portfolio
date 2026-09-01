@@ -5,17 +5,17 @@ export const prerender = true;
 
 <Layout
   title="Investing | Jack Faris"
-  description="Track my stock picks with entry prices and compare performance against the S&P 500 over time."
+  description="Jack's Picks: a live scorecard of the stocks Jack tracks with entry prices, compared against the S&P 500 over the same period."
 >
   <section class="hero hero-compact">
     <div class="container">
       <div class="hero-text">
         <p class="hero-eyebrow">Investing</p>
-        <h1>My Picks vs. the Market</h1>
+        <h1>Jack's Picks vs. the Market</h1>
         <p>
           A live scorecard of the stocks I buy — entry price, current value, and how they
-          stack up against the S&amp;P&nbsp;500 over the same period. Data updates from
-          Yahoo Finance; your positions are stored privately in your browser.
+          stack up against the S&amp;P&nbsp;500 over the same period. Everyone can view the
+          board; only I can change it. Prices update from Yahoo Finance.
         </p>
       </div>
     </div>
@@ -24,9 +24,10 @@ export const prerender = true;
   <section class="investing-section">
     <div class="container">
       <div class="investing-grid">
-        <!-- Add a pick -->
-        <div class="glass-panel invest-panel">
-          <h2>Add a pick</h2>
+        <!-- Owner controls (hidden unless the owner code is entered) -->
+        <div class="glass-panel invest-panel owner-panel hidden" id="owner-panel">
+          <h2>Edit Jack's Picks</h2>
+          <p class="owner-hint">You're in owner mode. Add or remove picks below — changes go live for everyone immediately.</p>
           <form id="add-position-form" autocomplete="off">
             <div class="form-row">
               <div class="form-field">
@@ -42,8 +43,7 @@ export const prerender = true;
             <div class="form-row">
               <div class="form-field">
                 <label for="p-price">Buy price (USD) *</label>
-                <input type="text" id="p-price" name="price" placeholder="250.00" required
-                  inputmode="decimal" />
+                <input type="text" id="p-price" name="price" placeholder="250.00" required inputmode="decimal" />
               </div>
               <div class="form-field">
                 <label for="p-date">Buy date *</label>
@@ -56,26 +56,53 @@ export const prerender = true;
             </div>
             <div class="form-field">
               <label for="p-note">Why I picked it <span class="label-hint">(optional)</span></label>
-              <input type="text" id="p-note" name="note" placeholder="Robotics + services growth" maxlength="140" />
+              <input type="text" id="p-note" name="note" placeholder="Foundry upside" maxlength="140" />
             </div>
             <div id="add-position-status" class="invest-status" role="status" aria-live="polite"></div>
             <button type="submit" class="btn btn-full" id="add-position-btn">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" stroke-linecap="round" />
               </svg>
-              Track this pick
+              Add this pick
             </button>
           </form>
-          <p class="fineprint">
-            Positions are saved only in this browser (localStorage). Use <strong>Export</strong>
-            to keep a backup — nothing here is financial advice.
+          <div class="owner-actions">
+            <button class="btn-secondary btn btn-sm" id="export-btn" type="button">Export JSON</button>
+            <button class="btn-secondary btn btn-sm" id="import-btn" type="button">Import JSON</button>
+            <input type="file" id="import-file" accept="application/json,.json" class="hidden" aria-hidden="true" tabindex="-1" />
+            <button class="btn-ghost btn btn-sm" id="clear-btn" type="button">Clear all</button>
+            <button class="btn-ghost btn btn-sm" id="lock-btn" type="button">Lock (exit)</button>
+          </div>
+          <p class="fineprint">Import replaces the whole board. Use Export first to keep a backup.</p>
+        </div>
+
+        <!-- Owner lock (shown to visitors / owner not yet unlocked) -->
+        <div class="glass-panel invest-panel owner-lock" id="owner-lock">
+          <div class="lock-ico" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+            </svg>
+          </div>
+          <h2>View-only</h2>
+          <p class="lock-copy">
+            You're viewing Jack's live board. Only Jack can add or remove picks — if you have
+            the owner code, enter it to unlock editing.
           </p>
+          <form id="owner-form" autocomplete="off">
+            <div class="form-field">
+              <label for="owner-code">Owner code</label>
+              <input type="text" id="owner-code" name="owner-code" placeholder="••••-••••-••••"
+                autocomplete="off" spellcheck="false" style="letter-spacing:.15em" />
+            </div>
+            <div id="owner-status" class="invest-status" role="status" aria-live="polite"></div>
+            <button type="submit" class="btn btn-full" id="unlock-btn">Unlock editing</button>
+          </form>
         </div>
 
         <!-- Portfolio -->
         <div class="glass-panel invest-panel invest-panel-wide">
           <div class="invest-panel-head">
-            <h2>My picks</h2>
+            <h2 id="board-title">Jack's picks</h2>
             <div class="invest-tools">
               <select id="compare-select" aria-label="Compare against">
                 <option value="^GSPC" selected>S&amp;P 500</option>
@@ -92,7 +119,7 @@ export const prerender = true;
           <div class="invest-summary" id="portfolio-summary"></div>
 
           <div class="chart-wrap">
-            <canvas id="invest-chart" height="360" aria-label="Performance chart of your picks versus the market benchmark"></canvas>
+            <canvas id="invest-chart" height="360" aria-label="Performance chart of Jack's picks versus the market benchmark"></canvas>
             <div id="chart-legend" class="chart-legend"></div>
           </div>
 
@@ -106,7 +133,7 @@ export const prerender = true;
                   <th>Now</th>
                   <th>Shares</th>
                   <th>Value</th>
-                  <th>Your pick</th>
+                  <th>Pick</th>
                   <th>Benchmark</th>
                   <th>Diff</th>
                   <th></th>
@@ -116,17 +143,11 @@ export const prerender = true;
             </table>
           </div>
 
-          <div id="positions-empty" class="invest-empty">
-            <p>No picks tracked yet. Add your first one on the left — or import a backup.</p>
+          <div id="positions-empty" class="invest-empty hidden">
+            <p>No picks on the board yet.</p>
           </div>
 
           <div class="invest-footer">
-            <div class="invest-footer-actions">
-              <button class="btn-secondary btn btn-sm" id="export-btn" type="button">Export JSON</button>
-              <button class="btn-secondary btn btn-sm" id="import-btn" type="button">Import JSON</button>
-              <input type="file" id="import-file" accept="application/json,.json" class="hidden" aria-hidden="true" tabindex="-1" />
-              <button class="btn-ghost btn btn-sm" id="clear-btn" type="button">Delete all</button>
-            </div>
             <p class="fineprint" id="price-updated"></p>
           </div>
         </div>
@@ -137,11 +158,16 @@ export const prerender = true;
 <script is:inline>
 (() => {
   'use strict';
-  const STORAGE_KEY = 'jackfaris.positions.v1';
   const BENCH_DEFAULT = '^GSPC';
   const $ = (sel) => document.querySelector(sel);
 
   const form = $('#add-position-form');
+  const ownerForm = $('#owner-form');
+  const ownerCodeEl = $('#owner-code');
+  const ownerStatusEl = $('#owner-status');
+  const ownerPanel = $('#owner-panel');
+  const ownerLock = $('#owner-lock');
+  const boardTitle = $('#board-title');
   const statusEl = $('#add-position-status');
   const addBtn = $('#add-position-btn');
   const positionsBody = $('#positions-body');
@@ -154,49 +180,35 @@ export const prerender = true;
   const priceUpdatedEl = $('#price-updated');
 
   let positions = [];
+  let ownerCode = '';
   let bench = null; // { data, error }
   let benchKey = '';
   let benchError = '';
   let positionLines = new Map(); // symbol -> {color, data|error}
   const palette = ['#e8a0a8', '#7dd3fc', '#a7f3d0', '#fcd34d', '#c4b5fd', '#f9a8d4', '#5eead4', '#fdba74', '#93c5fd', '#f0abfc'];
 
-  // ---------- storage ----------
-  function loadPositions() {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (!Array.isArray(parsed)) return;
-      positions = parsed
-        .filter((p) => p && typeof p.symbol === 'string' && Number.isFinite(p.price))
-        .map((p) => ({
-          id: p.id || String(p.symbol) + p.date,
-          symbol: p.symbol.toUpperCase(),
-          name: p.name || p.symbol.toUpperCase(),
-          price: p.price,
-          date: p.date || '',
-          shares: Number.isFinite(p.shares) && p.shares > 0 ? p.shares : 1,
-          note: p.note || '',
-        }));
-    } catch {
-      /* corrupt storage — start fresh */
-    }
-  }
-  function savePositions() {
-    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(positions)); } catch { /* full/blocked */ }
-  }
-  function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+  const isOwner = () => ownerCode.length > 0;
 
-  // ---------- formatting ----------
-  const usd0 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
-  const usd2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const fmtPct = (n) => (n > 0 ? '+' : '') + n.toFixed(1) + '%';
-  const fmtDate = (iso) => {
-    if (!iso) return '—';
-    const [y, m, d] = iso.split('-');
-    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // ---------- owner API ----------
+  async function api(action, extra = {}) {
+    const res = await fetch('/api/picks', {
+      method: action === 'get' ? 'GET' : 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: action === 'get' ? undefined : JSON.stringify({ code: ownerCode, action, ...extra }),
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(body.error || `HTTP ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+    return body;
+  }
+
+  async function loadPositions() {
+    const body = await api('get');
+    positions = Array.isArray(body.positions) ? body.positions : [];
+  }
 
   // ---------- price fetching ----------
   async function fetchPrice(symbol, from) {
@@ -207,6 +219,50 @@ export const prerender = true;
     if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
     return body;
   }
+
+  // ---------- owner-mode UI ----------
+  function applyMode() {
+    if (isOwner()) {
+      ownerLock.classList.add('hidden');
+      ownerPanel.classList.remove('hidden');
+      boardTitle.textContent = 'Jack's picks (editing)';
+      $('#p-date').value = $('#p-date').value || new Date().toISOString().slice(0, 10);
+    } else {
+      ownerPanel.classList.add('hidden');
+      ownerLock.classList.remove('hidden');
+      boardTitle.textContent = "Jack's picks";
+    }
+    renderAll();
+  }
+  function setOwnerStatus(kind, msg) {
+    ownerStatusEl.className = 'invest-status ' + kind;
+    ownerStatusEl.textContent = msg;
+  }
+
+  ownerForm.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const code = ownerCodeEl.value.trim();
+    if (!code) return setOwnerStatus('warn', 'Enter your owner code.');
+    $('#unlock-btn').disabled = true;
+    setOwnerStatus('busy', 'Checking code…');
+    try {
+      await api('auth', { code });
+    } catch (e) {
+      $('#unlock-btn').disabled = false;
+      return setOwnerStatus('err', 'That code is not right.');
+    }
+    ownerCode = code;
+    setOwnerStatus('ok', 'Unlocked.');
+    applyMode();
+    await refreshAll();
+  });
+
+  $('#lock-btn').addEventListener('click', () => {
+    ownerCode = '';
+    ownerCodeEl.value = '';
+    setOwnerStatus('', '');
+    applyMode();
+  });
 
   // ---------- rendering ----------
   function summaryData() {
@@ -220,6 +276,16 @@ export const prerender = true;
     return { cost, value, ok, gain: ok ? value - cost : null };
   }
 
+  const usd0 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+  const usd2 = (n) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPct = (n) => (n > 0 ? '+' : '') + n.toFixed(1) + '%';
+  const fmtDate = (iso) => {
+    if (!iso) return '—';
+    const [y, m, d] = iso.split('-');
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
   function renderSummary() {
     const s = summaryData();
     const parts = [];
@@ -229,12 +295,12 @@ export const prerender = true;
         const cls = s.gain >= 0 ? 'pos' : 'neg';
         parts.push(`<span class="sum-chip">P&amp;L: <b class="${cls}">${s.gain >= 0 ? '+' : ''}${usd2(s.gain)}</b> <span class="muted">(${usd0(s.cost)} invested)</span></span>`);
       }
-      if (bench && bench.data && positions[0]) {
+      if (bench && bench.data) {
         const earliest = [...positions].sort((a, b) => (a.date < b.date ? -1 : 1))[0];
         const pct = benchPctSince(earliest.date);
         if (pct !== null) {
           const cls = pct >= 0 ? 'pos' : 'neg';
-          parts.push(`<span class="sum-chip">S&amp;P 500 since your first buy: <b class="${cls}">${fmtPct(pct)}</b></span>`);
+          parts.push(`<span class="sum-chip">${esc(compareSelect.options[compareSelect.selectedIndex].text)} since first buy: <b class="${cls}">${fmtPct(pct)}</b></span>`);
         }
       }
     }
@@ -290,6 +356,9 @@ export const prerender = true;
         : `<b class="${pPct - bPct >= 0 ? 'pos' : 'neg'}">${pPct - bPct >= 0 ? '+' : ''}${(pPct - bPct).toFixed(1)}pp</b>`;
 
       const valueCell = cur === null ? '<span class="muted">—</span>' : usd0(cur * p.shares);
+      const delCell = isOwner()
+        ? `<button class="icon-btn del-btn" data-del="${esc(p.id)}" title="Remove ${esc(p.symbol)}" aria-label="Remove ${esc(p.symbol)}">×</button>`
+        : '';
       rows += `<tr>
         <td class="tick"><b>${esc(p.symbol)}</b>${p.name && p.name !== p.symbol ? `<span class="muted"> · ${esc(p.name)}</span>` : ''}${p.note ? `<span class="note" title="${esc(p.note)}">📝</span>` : ''}</td>
         <td>${fmtDate(p.date)}</td>
@@ -300,7 +369,7 @@ export const prerender = true;
         <td>${pickCell}</td>
         <td>${benchCell}</td>
         <td>${diffCell}</td>
-        <td class="row-actions"><button class="icon-btn del-btn" data-del="${esc(p.id)}" title="Remove ${esc(p.symbol)}" aria-label="Remove ${esc(p.symbol)}">×</button></td>
+        <td class="row-actions">${delCell}</td>
       </tr>`;
     }
     positionsBody.innerHTML = rows;
@@ -339,19 +408,11 @@ export const prerender = true;
     const plotW = w - pad.l - pad.r;
     const plotH = h - pad.t - pad.b;
 
-    // build normalized series: 100 at each series' start (earliest of all data),
-    // then draw bench + position lines on a shared %-change axis.
     const series = [];
     if (bench && bench.data && bench.data.history.length > 1) {
       const hist = bench.data.history;
       const base = hist[0].close;
-      series.push({
-        name: 'Benchmark',
-        color: '#c41e3a',
-        width: 2.5,
-        dashed: false,
-        points: hist.map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })),
-      });
+      series.push({ name: 'Benchmark', color: '#c41e3a', width: 2.5, points: hist.map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
     }
     if (toggleLines.checked) {
       for (const p of positions) {
@@ -362,26 +423,18 @@ export const prerender = true;
         const startIdx = idx < 0 ? 0 : idx;
         const base = hist[startIdx].close;
         if (startIdx >= hist.length) continue;
-        series.push({
-          name: p.symbol,
-          color: line.color,
-          width: 1.6,
-          dashed: false,
-          points: hist.slice(startIdx).map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })),
-        });
+        series.push({ name: p.symbol, color: line.color, width: 1.6, points: hist.slice(startIdx).map((pt) => ({ date: pt.date, val: (pt.close / base - 1) * 100 })) });
       }
     }
     if (!series.length) {
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.font = '14px Inter, sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(positions.length ? 'Fetching prices…' : 'Add a pick to see the chart', w / 2, h / 2);
+      ctx.fillText(positions.length ? 'Fetching prices…' : 'No picks on the board yet', w / 2, h / 2);
       return;
     }
 
     const allDates = [...new Set(series.flatMap((s) => s.points.map((p) => p.date)))].sort();
-    const first = allDates[0];
-    const last = allDates[allDates.length - 1];
     const dateIndex = new Map(allDates.map((d, i) => [d, i]));
     let min = Infinity, max = -Infinity;
     for (const s of series) for (const p of s.points) { min = Math.min(min, p.val); max = Math.max(max, p.val); }
@@ -392,7 +445,6 @@ export const prerender = true;
     const xOf = (d) => pad.l + (allDates.length < 2 ? 0 : (dateIndex.get(d) / (allDates.length - 1)) * plotW);
     const yOf = (v) => pad.t + (1 - (v - min) / (max - min)) * plotH;
 
-    // grid + y labels
     ctx.font = '11px Inter, sans-serif';
     ctx.textAlign = 'right';
     ctx.textBaseline = 'middle';
@@ -405,7 +457,6 @@ export const prerender = true;
       ctx.fillStyle = 'rgba(255,255,255,0.45)';
       ctx.fillText((v > 0 ? '+' : '') + v.toFixed(0) + '%', pad.l - 8, y);
     }
-    // zero line
     if (min < 0 && max > 0) {
       const y0 = yOf(0);
       ctx.strokeStyle = 'rgba(255,255,255,0.22)';
@@ -413,7 +464,6 @@ export const prerender = true;
       ctx.beginPath(); ctx.moveTo(pad.l, y0); ctx.lineTo(w - pad.r, y0); ctx.stroke();
       ctx.setLineDash([]);
     }
-    // x labels
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     const xSteps = Math.min(6, allDates.length - 1);
@@ -422,7 +472,6 @@ export const prerender = true;
       ctx.fillStyle = 'rgba(255,255,255,0.45)';
       ctx.fillText(fmtDate(d), xOf(d), h - pad.b + 8);
     }
-    // series
     for (const s of series) {
       ctx.strokeStyle = s.color;
       ctx.lineWidth = s.width;
@@ -434,17 +483,15 @@ export const prerender = true;
         if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
       }
       ctx.stroke();
-      // end dot
       const endPt = s.points[s.points.length - 1];
       ctx.fillStyle = s.color;
       ctx.beginPath(); ctx.arc(xOf(endPt.date), yOf(endPt.val), 3, 0, Math.PI * 2); ctx.fill();
     }
-    // caption
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.font = '10px Inter, sans-serif';
-    ctx.fillText('Index: 100 = value on the earliest date shown. Position lines start at their buy date.', pad.l, h - 4);
+    ctx.fillText('Index: 0% = value on the earliest date shown. Position lines start at their buy date.', pad.l, h - 4);
   }
 
   // ---------- data loading ----------
@@ -474,13 +521,9 @@ export const prerender = true;
     const uniqueSymbols = [...new Set(positions.map((p) => p.symbol))].sort();
     for (const p of positions) {
       const color = palette[uniqueSymbols.indexOf(p.symbol) % palette.length];
-      if (positionLines.has(p.symbol)) {
-        positionLines.get(p.symbol).color = color;
-        continue;
-      }
+      if (positionLines.has(p.symbol)) { positionLines.get(p.symbol).color = color; continue; }
       const entry = { color, data: null, error: '' };
       positionLines.set(p.symbol, entry);
-      // use a window starting ~6 weeks before the first buy of this symbol
       const firstBuy = [...positions].filter((q) => q.symbol === p.symbol).sort((a, b) => (a.date < b.date ? -1 : 1))[0];
       const start = new Date(firstBuy.date + 'T00:00:00Z');
       start.setUTCDate(start.getUTCDate() - 45);
@@ -490,7 +533,6 @@ export const prerender = true;
         .catch((e) => { entry.error = e.message; })
         .finally(() => renderAll());
     }
-    // clear lines for symbols no longer tracked
     for (const sym of [...positionLines.keys()]) {
       if (!uniqueSymbols.includes(sym)) positionLines.delete(sym);
     }
@@ -506,11 +548,21 @@ export const prerender = true;
       : '';
   }
 
-  // ---------- events ----------
+  async function refreshAll() {
+    await loadPositions();
+    await Promise.all([loadPositionLines(), loadBenchmark()]);
+  }
+
+  // ---------- owner actions ----------
+  function setAddStatus(kind, msg) {
+    statusEl.className = 'invest-status ' + kind;
+    statusEl.textContent = msg;
+  }
+
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const symbol = $('#p-symbol').value.trim().toUpperCase();
-    const name = $('#p-name').value.trim();
+    let name = $('#p-name').value.trim();
     const price = parseFloat($('#p-price').value.replace(/[^0-9.]/g, ''));
     const date = $('#p-date').value;
     const sharesRaw = $('#p-shares').value.replace(/[^0-9.]/g, '');
@@ -528,57 +580,54 @@ export const prerender = true;
     try {
       const data = await fetchPrice(symbol);
       livePrice = data.price;
-      if (!name) {
-        name = data.name || '';
-        $('#p-name').value = name;
-      }
+      if (!name) { name = data.name || ''; $('#p-name').value = name; }
     } catch (e) {
       addBtn.disabled = false;
       return setAddStatus('err', `Couldn't verify "${symbol}": ${e.message}`);
     }
     if (Math.abs(livePrice - price) / livePrice > 0.9) {
-      const ok = confirm(
-        `${symbol} last traded at ${usd2(livePrice)}, but you entered ${usd2(price)}.\n\nOK = save as typed. Cancel = go back and fix it.`
-      );
-      if (!ok) {
-        addBtn.disabled = false;
-        return setAddStatus('warn', 'Cancelled — entry price looks off. Adjust and retry.');
-      }
+      const ok = confirm(`${symbol} last traded at ${usd2(livePrice)}, but you entered ${usd2(price)}.\n\nOK = save as typed. Cancel = go back and fix it.`);
+      if (!ok) { addBtn.disabled = false; return setAddStatus('warn', 'Cancelled — entry price looks off.'); }
     }
-    positions.push({ id: uid(), symbol, name: name || symbol, price, date, shares, note });
-    savePositions();
+    try {
+      const body = await api('add', { position: { symbol, name, price, date, shares, note } });
+      positions = body.positions;
+    } catch (e) {
+      addBtn.disabled = false;
+      return setAddStatus('err', e.status === 401 ? 'Owner lock expired — unlock again.' : 'Could not save: ' + e.message);
+    }
     form.reset();
     $('#p-date').value = new Date().toISOString().slice(0, 10);
     addBtn.disabled = false;
-    setAddStatus('ok', `Now tracking ${symbol} @ ${usd2(price)}.`);
+    setAddStatus('ok', `Added ${symbol} @ ${usd2(price)} — live for everyone.`);
     await Promise.all([loadPositionLines(), loadBenchmark()]);
   });
 
-  function setAddStatus(kind, msg) {
-    statusEl.className = 'invest-status ' + kind;
-    statusEl.textContent = msg;
-  }
-
-  positionsBody.addEventListener('click', (ev) => {
+  positionsBody.addEventListener('click', async (ev) => {
     const btn = ev.target.closest('[data-del]');
     if (!btn) return;
-    const p = positions.find((x) => x.id === btn.getAttribute('data-del'));
+    const id = btn.getAttribute('data-del');
+    const p = positions.find((x) => x.id === id);
     if (!p) return;
     if (!confirm(`Remove ${p.symbol} (bought ${fmtDate(p.date)} @ ${usd2(p.price)})?`)) return;
-    positions = positions.filter((x) => x.id !== p.id);
-    savePositions();
+    try {
+      const body = await api('remove', { id });
+      positions = body.positions;
+    } catch (e) {
+      return alert(e.status === 401 ? 'Owner lock expired — unlock again.' : 'Could not remove: ' + e.message);
+    }
     renderAll();
-    loadPositionLines().then(loadBenchmark);
+    await Promise.all([loadPositionLines(), loadBenchmark()]);
   });
 
   compareSelect.addEventListener('change', () => loadBenchmark());
   toggleLines.addEventListener('change', () => { renderLegend(); drawChart(); });
 
   $('#export-btn').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify({ app: 'jackfaris-investing', version: 1, exportedAt: new Date().toISOString(), positions }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ app: 'jackfaris-picks', version: 1, exportedAt: new Date().toISOString(), positions }, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `stock-picks-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `jacks-picks-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   });
@@ -591,324 +640,115 @@ export const prerender = true;
       const data = JSON.parse(await file.text());
       const list = Array.isArray(data) ? data : data.positions;
       if (!Array.isArray(list)) throw new Error('No positions array found');
-      let imported = 0;
-      for (const raw of list) {
-        if (!raw || typeof raw.symbol !== 'string' || !Number.isFinite(raw.price)) continue;
-        positions.push({
-          id: raw.id && !positions.some((p) => p.id === raw.id) ? raw.id : uid(),
-          symbol: raw.symbol.toUpperCase(),
-          name: raw.name || raw.symbol.toUpperCase(),
-          price: raw.price,
-          date: raw.date || '',
-          shares: Number.isFinite(raw.shares) && raw.shares > 0 ? raw.shares : 1,
-          note: raw.note || '',
-        });
-        imported++;
-      }
-      savePositions();
-      renderAll();
-      await Promise.all([loadPositionLines(), loadBenchmark()]);
-      alert(`Imported ${imported} position${imported === 1 ? '' : 's'}.`);
+      if (!confirm(`Import ${list.length} pick(s) and REPLACE the whole board?`)) { ev.target.value = ''; return; }
+      const body = await api('replace', { positions: list });
+      positions = body.positions;
     } catch (e) {
-      alert('Import failed: ' + e.message);
+      return alert('Import failed: ' + (e.status === 401 ? 'owner lock expired.' : e.message));
     }
     ev.target.value = '';
+    await Promise.all([loadPositionLines(), loadBenchmark()]);
   });
 
-  $('#clear-btn').addEventListener('click', () => {
+  $('#clear-btn').addEventListener('click', async () => {
     if (!positions.length) return;
-    if (!confirm('Delete ALL tracked positions from this browser? (Export first if you want a backup.)')) return;
-    positions = [];
-    savePositions();
+    if (!confirm('Clear ALL picks from the board? (Export first if you want a backup.)')) return;
+    try {
+      const body = await api('clear', {});
+      positions = body.positions;
+    } catch (e) {
+      return alert(e.status === 401 ? 'Owner lock expired.' : 'Could not clear: ' + e.message);
+    }
     positionLines.clear();
     renderAll();
     loadBenchmark();
   });
 
   let resizeTimer = null;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(drawChart, 150);
-  });
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawChart, 150); });
 
   // ---------- init ----------
-  loadPositions();
   $('#p-date').value = new Date().toISOString().slice(0, 10);
-  renderAll();
-  loadPositionLines();
-  loadBenchmark();
+  applyMode();
+  refreshAll().catch(() => renderAll());
 })();
 </script>
 
 <style>
   /* Investing page */
-  .investing-section {
-    padding: var(--space-md) 0 var(--space-lg);
-  }
+  .investing-section { padding: var(--space-md) 0 var(--space-lg); }
+  .investing-grid { display: grid; grid-template-columns: 380px 1fr; gap: var(--space-md); align-items: start; }
+  @media (max-width: 900px) { .investing-grid { grid-template-columns: 1fr; } }
 
-  .investing-grid {
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    gap: var(--space-md);
-    align-items: start;
-  }
+  .invest-panel { padding: var(--space-md); margin-bottom: var(--space-md); }
+  .invest-panel h2 { margin-bottom: var(--space-sm); font-size: 1.375rem; }
 
-  @media (max-width: 900px) {
-    .investing-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .invest-panel {
-    padding: var(--space-md);
-    margin-bottom: var(--space-md);
-  }
-
-  .invest-panel h2 {
-    margin-bottom: var(--space-sm);
-    font-size: 1.375rem;
-  }
-
-  .invest-panel-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-bottom: var(--space-sm);
-  }
-
-  .invest-panel-head h2 {
-    margin-bottom: 0;
-    font-size: 1.375rem;
-  }
-
-  .invest-tools {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-  }
+  .invest-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: var(--space-sm); }
+  .invest-panel-head h2 { margin-bottom: 0; font-size: 1.375rem; }
+  .invest-tools { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
 
   #compare-select {
-    background: rgba(13, 13, 15, 0.6);
-    color: var(--color-text);
-    border: 1px solid var(--color-border);
-    border-radius: calc(var(--radius) - 2px);
-    padding: 0.5rem 0.75rem;
-    font-family: var(--font-body);
-    font-size: 0.875rem;
+    background: rgba(13, 13, 15, 0.6); color: var(--color-text);
+    border: 1px solid var(--color-border); border-radius: calc(var(--radius) - 2px);
+    padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.875rem;
   }
+  .tool-toggle { display: flex; align-items: center; gap: 0.4rem; color: var(--color-text-light); font-size: 0.875rem; cursor: pointer; user-select: none; }
+  .tool-toggle input { accent-color: var(--color-accent); }
 
-  .tool-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: var(--color-text-light);
-    font-size: 0.875rem;
-    cursor: pointer;
-    user-select: none;
+  /* Owner lock card */
+  .owner-lock { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .lock-ico {
+    width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: var(--color-accent-light); border: 1px solid var(--color-border-accent); color: var(--color-accent-soft); margin-bottom: var(--space-sm);
   }
+  .owner-lock h2 { font-size: 1.375rem; margin-bottom: 0.5rem; }
+  .lock-copy { font-size: 0.9375rem; margin-bottom: var(--space-sm); }
+  .owner-lock form { width: 100%; max-width: 320px; }
+  .owner-lock .form-field label { text-align: left; }
+  .owner-hint { font-size: 0.875rem; margin-bottom: var(--space-sm); }
+  .owner-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
 
-  .tool-toggle input {
-    accent-color: var(--color-accent);
-  }
-
-  .label-hint {
-    color: var(--color-text-light);
-    opacity: 0.7;
-    font-size: 0.8125rem;
-  }
-
-  .invest-status {
-    font-size: 0.875rem;
-    margin-bottom: 0.75rem;
-    min-height: 1.2em;
-  }
-
+  .label-hint { color: var(--color-text-light); opacity: 0.7; font-size: 0.8125rem; }
+  .invest-status { font-size: 0.875rem; margin-bottom: 0.75rem; min-height: 1.2em; }
   .invest-status.busy { color: var(--color-text-light); }
   .invest-status.ok { color: #6ee7b7; }
   .invest-status.err { color: #fca5a5; }
   .invest-status.warn { color: #fcd34d; }
+  .fineprint { font-size: 0.8125rem; color: var(--color-text-light); opacity: 0.75; margin-top: 0.75rem; }
 
-  .fineprint {
-    font-size: 0.8125rem;
-    color: var(--color-text-light);
-    opacity: 0.75;
-    margin-top: 0.75rem;
-  }
-
-  .invest-summary {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-bottom: var(--space-sm);
-  }
-
-  .sum-chip {
-    background: rgba(13, 13, 15, 0.55);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-pill);
-    padding: 0.4rem 0.9rem;
-    font-size: 0.8125rem;
-    color: var(--color-text-light);
-  }
-
-  .sum-chip b {
-    color: var(--color-text);
-  }
-
+  .invest-summary { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: var(--space-sm); }
+  .sum-chip { background: rgba(13, 13, 15, 0.55); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0.4rem 0.9rem; font-size: 0.8125rem; color: var(--color-text-light); }
+  .sum-chip b { color: var(--color-text); }
   .sum-chip .pos { color: #6ee7b7; }
   .sum-chip .neg { color: #fca5a5; }
   .sum-chip .muted { color: var(--color-text-light); opacity: 0.7; font-weight: 400; }
   .sum-chip.warn { border-color: rgba(252, 211, 77, 0.4); color: #fcd34d; }
 
-  .chart-wrap {
-    margin-bottom: var(--space-sm);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: rgba(13, 13, 15, 0.4);
-    padding: var(--space-sm);
-  }
+  .chart-wrap { margin-bottom: var(--space-sm); border: 1px solid var(--color-border); border-radius: var(--radius); background: rgba(13, 13, 15, 0.4); padding: var(--space-sm); }
+  #invest-chart { width: 100%; display: block; }
+  .chart-legend { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 0.6rem; padding: 0 0.25rem; }
+  .legend-item { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--color-text-light); }
+  .legend-item .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; background: var(--color-text-light); }
+  .legend-item .swatch.bench { background: var(--color-accent); }
 
-  #invest-chart {
-    width: 100%;
-    display: block;
-  }
-
-  .chart-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.9rem;
-    margin-top: 0.6rem;
-    padding: 0 0.25rem;
-  }
-
-  .legend-item {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.8125rem;
-    color: var(--color-text-light);
-  }
-
-  .legend-item .swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 3px;
-    display: inline-block;
-    background: var(--color-text-light);
-  }
-
-  .legend-item .swatch.bench {
-    background: var(--color-accent);
-  }
-
-  .table-scroll {
-    overflow-x: auto;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-  }
-
-  .invest-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.875rem;
-    min-width: 640px;
-  }
-
-  .invest-table th,
-  .invest-table td {
-    padding: 0.65rem 0.75rem;
-    text-align: left;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .invest-table th {
-    color: var(--color-text-light);
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: rgba(13, 13, 15, 0.5);
-  }
-
-  .invest-table tr:last-child td {
-    border-bottom: none;
-  }
-
-  .invest-table .tick b {
-    color: var(--color-text);
-  }
-
+  .table-scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius); }
+  .invest-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
+  .invest-table th, .invest-table td { padding: 0.65rem 0.75rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border); }
+  .invest-table th { color: var(--color-text-light); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; background: rgba(13, 13, 15, 0.5); }
+  .invest-table tr:last-child td { border-bottom: none; }
+  .invest-table .tick b { color: var(--color-text); }
   .invest-table .muted { color: var(--color-text-light); opacity: 0.8; }
   .invest-table .small { font-size: 0.75rem; }
   .invest-table .pos { color: #6ee7b7; }
   .invest-table .neg { color: #fca5a5; }
   .invest-table .note { cursor: help; margin-left: 0.35rem; }
-
-  .row-actions {
-    text-align: right;
-  }
-
-  .icon-btn {
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-light);
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1rem;
-    line-height: 1;
-    transition: all 0.15s ease;
-  }
-
-  .icon-btn:hover {
-    color: #fca5a5;
-    border-color: rgba(252, 165, 165, 0.4);
-    background: rgba(196, 30, 58, 0.08);
-  }
-
-  .invest-empty {
-    padding: var(--space-md);
-    text-align: center;
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius);
-  }
-
-  .invest-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    flex-wrap: wrap;
-    margin-top: var(--space-sm);
-  }
-
-  .invest-footer-actions {
-    display: flex;
-    gap: 0.6rem;
-    flex-wrap: wrap;
-  }
-
-  .btn-sm {
-    padding: 0.5rem 1rem;
-    font-size: 0.8125rem;
-  }
-
-  .btn-ghost {
-    background: transparent;
-    border: 1px solid var(--color-border);
-    color: var(--color-text-light);
-  }
-
-  .btn-ghost:hover {
-    color: #fca5a5;
-    border-color: rgba(252, 165, 165, 0.4);
-    background: rgba(196, 30, 58, 0.06);
-    transform: none;
-  }
+  .row-actions { text-align: right; }
+  .icon-btn { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; line-height: 1; transition: all 0.15s ease; }
+  .icon-btn:hover { color: #fca5a5; border-color: rgba(252, 165, 165, 0.4); background: rgba(196, 30, 58, 0.08); }
+  .invest-empty { padding: var(--space-md); text-align: center; border: 1px dashed var(--color-border); border-radius: var(--radius); }
+  .invest-footer { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-sm); }
+  .btn-sm { padding: 0.5rem 1rem; font-size: 0.8125rem; }
+  .btn-ghost { background: transparent; border: 1px solid var(--color-border); color: var(--color-text-light); }
+  .btn-ghost:hover { color: #fca5a5; border-color: rgba(252, 165, 165, 0.4); background: rgba(196, 30, 58, 0.06); transform: none; }
 </style>
 </Layout>

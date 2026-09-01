@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Variant B — Editorial cream (serif, olive ink)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f6f3ec;
+    --card: #fffdf8;
+    --ink: #211d16;
+    --muted: #6f6858;
+    --line: #ddd6c6;
+    --accent: #40634c;
+    --accent-soft: #e8efe6;
+    --gold: #a3762a;
+    --serif: 'Fraunces', Georgia, serif;
+    --sans: 'Inter', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+  .container { max-width: 1000px; margin: 0 auto; padding: 0 28px; }
+  a { color: inherit; text-decoration: none; }
+
+  /* NAV */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(246,243,236,0.9); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .25s; }
+  .nav.scrolled { border-bottom-color: var(--line); }
+  .nav-inner { display: flex; justify-content: space-between; align-items: center; padding: 22px 28px; }
+  .brand { font-family: var(--serif); font-size: 1.25rem; font-weight: 500; letter-spacing: -0.01em; }
+  .brand em { font-style: italic; color: var(--accent); }
+  .nav-links { display: flex; gap: 34px; font-size: 0.92rem; font-weight: 500; }
+  .nav-links a { position: relative; color: var(--muted); transition: color .15s; }
+  .nav-links a:hover, .nav-links a.active { color: var(--ink); }
+  .nav-links a::after { content: ''; position: absolute; left: 0; bottom: -5px; width: 0; height: 1px; background: var(--ink); transition: width .25s ease; }
+  .nav-links a:hover::after, .nav-links a.active::after { width: 100%; }
+  .nav-cta { border: 1px solid var(--ink); padding: 9px 20px; border-radius: 2px; color: var(--ink) !important; transition: all .18s; }
+  .nav-cta:hover { background: var(--ink); color: var(--bg) !important; }
+  .nav-cta::after { display: none; }
+
+  /* HERO — editorial split */
+  .hero { padding: 110px 0 80px; }
+  .hero-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 64px; align-items: end; }
+  .kicker { font-size: 0.78rem; font-weight: 600; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold); margin-bottom: 26px; display: flex; align-items: center; gap: 12px; }
+  .kicker::before { content: ''; width: 34px; height: 1px; background: var(--gold); }
+  h1 { font-family: var(--serif); font-size: clamp(3rem, 7vw, 5rem); font-weight: 500; line-height: 1.02; letter-spacing: -0.025em; margin-bottom: 22px; }
+  h1 em { font-style: italic; color: var(--accent); }
+  .hero-role { font-family: var(--serif); font-size: 1.35rem; font-weight: 400; font-style: italic; color: var(--ink); margin-bottom: 14px; }
+  .hero p.lead { color: var(--muted); font-size: 1.05rem; max-width: 48ch; margin-bottom: 34px; }
+  .hero-actions { display: flex; gap: 28px; align-items: center; }
+  .link-arrow { font-weight: 600; font-size: 0.95rem; display: inline-flex; align-items: center; gap: 8px; border-bottom: 1px solid transparent; transition: gap .2s, border-color .2s; }
+  .link-arrow:hover { gap: 14px; border-bottom-color: var(--ink); }
+  .link-arrow .arr { transition: transform .2s; }
+  .hero-photo { position: relative; }
+  .photo-frame { aspect-ratio: 4/5; border-radius: 2px; overflow: hidden; background: linear-gradient(160deg, #e7e0d0 0%, #d9d2bf 55%, #c9c2ad 100%); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; }
+  .photo-frame .initials { font-family: var(--serif); font-size: 5rem; font-style: italic; color: rgba(33,29,22,0.35); }
+  .photo-caption { font-size: 0.8rem; color: var(--muted); margin-top: 12px; text-align: right; font-style: italic; font-family: var(--serif); }
+  .photo-badge { position: absolute; top: 14px; left: -14px; background: var(--card); border: 1px solid var(--line); padding: 8px 16px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+
+  /* rule */
+  .rule { border: none; border-top: 1px solid var(--line); margin: 0; }
+
+  /* FOCUS — numbered editorial list */
+  section.focus { padding: 88px 0; }
+  .focus-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 48px; }
+  .focus-head h2 { font-family: var(--serif); font-size: 2.3rem; font-weight: 500; letter-spacing: -0.02em; }
+  .focus-head span { font-size: 0.85rem; color: var(--muted); font-style: italic; font-family: var(--serif); }
+  .focus-list { border-top: 1px solid var(--line); }
+  .focus-item { display: grid; grid-template-columns: 90px 1fr 1.4fr; gap: 32px; padding: 34px 0; border-bottom: 1px solid var(--line); transition: padding-left .25s ease, background .25s; }
+  .focus-item:hover { padding-left: 14px; background: linear-gradient(90deg, var(--accent-soft), transparent 60%); }
+  .focus-num { font-family: var(--serif); font-style: italic; font-size: 1.15rem; color: var(--gold); }
+  .focus-item h3 { font-family: var(--serif); font-size: 1.55rem; font-weight: 500; letter-spacing: -0.015em; line-height: 1.15; margin-bottom: 6px; }
+  .focus-item h3 span { display: block; font-family: var(--sans); font-size: 0.75rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .focus-item p { color: var(--muted); font-size: 0.96rem; }
+
+  /* HELP — three quiet columns */
+  section.help { padding: 40px 0 96px; }
+  .help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--line); background: var(--card); }
+  .help-col { padding: 40px 34px; border-right: 1px solid var(--line); transition: background .2s; }
+  .help-col:last-child { border-right: none; }
+  .help-col:hover { background: #fff; }
+  .help-col .idx { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.2em; color: var(--gold); margin-bottom: 18px; }
+  .help-col h3 { font-family: var(--serif); font-size: 1.45rem; font-weight: 500; margin-bottom: 12px; letter-spacing: -0.015em; }
+  .help-col p { color: var(--muted); font-size: 0.94rem; }
+
+  /* mission band */
+  .mission { background: var(--ink); color: var(--bg); padding: 96px 0; text-align: center; }
+  .mission .kicker { justify-content: center; color: #d8c48f; }
+  .mission .kicker::before { background: #d8c48f; }
+  .mission blockquote { font-family: var(--serif); font-size: clamp(1.6rem, 3.6vw, 2.6rem); font-weight: 400; font-style: italic; line-height: 1.35; max-width: 26ch; margin: 0 auto; letter-spacing: -0.01em; }
+  .mission blockquote em { color: #9fc3a8; font-style: italic; }
+  .mission cite { display: block; margin-top: 28px; font-style: normal; font-size: 0.85rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(246,243,236,0.55); }
+
+  footer { padding: 56px 0; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--muted); }
+  footer .foot-links { display: flex; gap: 26px; }
+  footer a:hover { color: var(--ink); }
+
+  @media (max-width: 820px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hero-photo { max-width: 340px; }
+    .focus-item { grid-template-columns: 40px 1fr; }
+    .focus-item p { grid-column: 2; }
+    .help-grid { grid-template-columns: 1fr; }
+    .help-col { border-right: none; border-bottom: 1px solid var(--line); }
+    .nav-links a:not(.nav-cta) { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="nav" id="nav">
+    <div class="nav-inner container">
+      <div class="brand">Jack <em>Faris</em></div>
+      <div class="nav-links">
+        <a href="#">Home</a><a href="#">About</a><a href="#">Work</a><a href="#">Investing</a>
+        <a href="#" class="nav-cta">Contact</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero container">
+    <div class="hero-grid">
+      <div>
+        <div class="kicker">Medtronic robotics · AI builder · St. Louis</div>
+        <h1>Jack Faris</h1>
+        <div class="hero-role">Solving complex clinical and business problems through technology.</div>
+        <p class="lead">I help hospitals and healthcare systems adopt robotic surgery — and I build practical AI tools that solve real problems. Hugo RAS certified, sales-led, engineer's curiosity.</p>
+        <div class="hero-actions">
+          <a class="link-arrow" href="#">View my work <span class="arr">→</span></a>
+          <a class="link-arrow" href="#">Download resume <span class="arr">↓</span></a>
+        </div>
+      </div>
+      <div class="hero-photo">
+        <div class="photo-frame"><span class="initials">JF</span></div>
+        <div class="photo-badge">Hugo RAS · Certified</div>
+        <div class="photo-caption">St. Louis, Missouri — 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule container">
+
+  <section class="focus container">
+    <div class="focus-head">
+      <h2>Current focus</h2>
+      <span>where the time goes right now</span>
+    </div>
+    <div class="focus-list">
+      <div class="focus-item">
+        <div class="focus-num">No. 01</div>
+        <h3><span>Medtronic Hugo RAS Platform</span>Robotic surgery, certified</h3>
+        <p>Running robotic-assisted surgery cases and demonstrating clinical value to surgeons and healthcare systems.</p>
+      </div>
+      <div class="focus-item">
+        <div class="focus-num">No. 02</div>
+        <h3><span>Medical Devices</span>Sales with a surgical edge</h3>
+        <p>Certified in Medtronic's Hugo RAS platform with direct OR case support — the intersection of clinical trust and commercial execution.</p>
+      </div>
+      <div class="focus-item">
+        <div class="focus-num">No. 03</div>
+        <h3><span>AI &amp; Technology</span>OpenClaw</h3>
+        <p>Building an AI agent platform that helps small businesses and individuals automate meaningful work — early, practical, durable.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="help container">
+    <div class="help-grid">
+      <div class="help-col">
+        <div class="idx">I — CLINICAL</div>
+        <h3>Robotics support</h3>
+        <p>Hands-on OR case support, surgeon and staff training, and program rollout that delivers measurable clinical value.</p>
+      </div>
+      <div class="help-col">
+        <div class="idx">II — STRATEGY</div>
+        <h3>Adoption strategy</h3>
+        <p>Value propositions, business cases, and adoption roadmaps — technology translated into the outcomes administrators care about.</p>
+      </div>
+      <div class="help-col">
+        <div class="idx">III — AI</div>
+        <h3>Practical automation</h3>
+        <p>AI agents designed and built for real work — from architecture to deployment, grounded in what moves the needle.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="mission">
+    <div class="container">
+      <div class="kicker">Mission</div>
+      <blockquote>"To help organizations adopt technology with <em>confidence</em>."</blockquote>
+      <cite>Jack Faris — St. Louis, Missouri</cite>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+      <div>© 2026 Jack Faris</div>
+      <div class="foot-links"><a href="#">LinkedIn</a><a href="#">Resume</a><a href="#">Investing</a></div>
+    </div>
+  </footer>
+
+  <script>
+    addEventListener('scroll', () => document.getElementById('nav').classList.toggle('scrolled', scrollY > 8), { passive: true });
+  </script>
+</body>
+</html>
