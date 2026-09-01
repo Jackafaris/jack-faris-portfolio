@@ -55,14 +55,12 @@ const isActive = (href: string) => {
       nav.classList.remove('nav-open');
       toggle.setAttribute('aria-expanded', 'false');
       toggle.setAttribute('aria-label', 'Open menu');
-      document.documentElement.classList.remove('nav-menu-open');
     };
 
     toggle.addEventListener('click', () => {
       const isOpen = nav.classList.toggle('nav-open');
       toggle.setAttribute('aria-expanded', String(isOpen));
       toggle.setAttribute('aria-label', isOpen ? 'Close menu' : 'Open menu');
-      document.documentElement.classList.toggle('nav-menu-open', isOpen);
     });
 
     navLinks.querySelectorAll('a').forEach((link) => {
@@ -71,6 +69,11 @@ const isActive = (href: string) => {
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') closeMenu();
+    });
+
+    // Tap outside the nav closes the menu
+    document.addEventListener('pointerdown', (event) => {
+      if (nav.classList.contains('nav-open') && !nav.contains(event.target)) closeMenu();
     });
   }
 </script>
