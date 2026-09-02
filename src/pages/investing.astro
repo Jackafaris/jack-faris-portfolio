@@ -5,367 +5,276 @@ export const prerender = true;
 
 <Layout
   title="Investing | Jack Faris"
-  description="Jack's Picks: a live scorecard of the stocks Jack tracks with entry prices, compared against the S&P 500 over the same period."
+  description="Two daily market trackers: the S&P 500 and Jack's stock of choice. Base set as of Sep 1, 2026; closes recorded at 4 PM Central every day."
 >
   <section class="hero hero-compact">
     <div class="container">
       <div class="hero-text">
         <p class="hero-eyebrow">Investing</p>
-        <h1>Jack's Picks vs. the Market</h1>
+        <h1>Two Trackers, Updated Daily</h1>
         <p>
-          A live scorecard of the stocks I buy — entry price, current value, and how they
-          stack up against the S&amp;P&nbsp;500 over the same period. Everyone can view the
-          board; only I can change it. Prices update from Yahoo Finance.
+          The S&amp;P&nbsp;500 and one stock of my choosing, each tracked from its
+          base point of <b>September&nbsp;1, 2026</b>. Daily closes are recorded at
+          4&nbsp;PM&nbsp;Central — the total shows where each one stands since the
+          base. Simple by design.
         </p>
       </div>
     </div>
   </section>
 
-  <section class="investing-section">
+  <section class="trackers-section">
     <div class="container">
-      <div class="investing-grid">
-        <!-- Owner controls (hidden unless the owner code is entered) -->
-        <div class="invest-panel owner-panel hidden" id="owner-panel">
-          <h2>Edit Jack's Picks</h2>
-          <p class="owner-hint">You're in owner mode. Add or remove picks below — changes go live for everyone immediately.</p>
-          <form id="add-position-form" autocomplete="off">
-            <div class="form-row">
-              <div class="form-field">
-                <label for="p-symbol">Ticker *</label>
-                <input type="text" id="p-symbol" name="symbol" placeholder="AAPL" required
-                  pattern="[A-Za-z0-9.\-^]{1,12}" />
-              </div>
-              <div class="form-field">
-                <label for="p-name">Name <span class="label-hint">(optional)</span></label>
-                <input type="text" id="p-name" name="name" placeholder="Apple Inc." maxlength="60" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-field">
-                <label for="p-price">Buy price (USD) *</label>
-                <input type="text" id="p-price" name="price" placeholder="250.00" required inputmode="decimal" />
-              </div>
-              <div class="form-field">
-                <label for="p-date">Buy date *</label>
-                <input type="date" id="p-date" name="date" required />
-              </div>
-            </div>
-            <div class="form-field">
-              <label for="p-shares">Shares <span class="label-hint">(for total value; defaults to 1)</span></label>
-              <input type="text" id="p-shares" name="shares" placeholder="10" inputmode="decimal" />
-            </div>
-            <div class="form-field">
-              <label for="p-note">Why I picked it <span class="label-hint">(optional)</span></label>
-              <input type="text" id="p-note" name="note" placeholder="Foundry upside" maxlength="140" />
-            </div>
-            <div id="add-position-status" class="invest-status" role="status" aria-live="polite"></div>
-            <button type="submit" class="btn btn-full" id="add-position-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" stroke-linecap="round" />
-              </svg>
-              Add this pick
-            </button>
-          </form>
-          <div class="owner-actions">
-            <button class="btn btn-secondary btn-sm" id="export-btn" type="button">Export JSON</button>
-            <button class="btn btn-secondary btn-sm" id="import-btn" type="button">Import JSON</button>
-            <input type="file" id="import-file" accept="application/json,.json" class="hidden" aria-hidden="true" tabindex="-1" />
-            <button class="btn-ghost btn-sm" id="clear-btn" type="button">Clear all</button>
-            <button class="btn-ghost btn-sm" id="lock-btn" type="button">Lock (exit)</button>
-          </div>
-          <p class="fineprint">Import replaces the whole board. Use Export first to keep a backup.</p>
-        </div>
-
-        <!-- Owner lock (shown to visitors / owner not yet unlocked) -->
-        <div class="invest-panel owner-lock" id="owner-lock">
-          <div class="lock-ico" aria-hidden="true">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
-            </svg>
-          </div>
-          <h2>View-only</h2>
-          <p class="lock-copy">
-            You're viewing Jack's live board. Only Jack can add or remove picks — if you have
-            the owner code, enter it to unlock editing.
-          </p>
-          <form id="owner-form" autocomplete="off">
-            <div class="form-field">
-              <label for="owner-code">Owner code</label>
-              <input type="text" id="owner-code" name="owner-code" placeholder="••••-••••-••••"
-                autocomplete="off" spellcheck="false" style="letter-spacing:.15em" />
-            </div>
-            <div id="owner-status" class="invest-status" role="status" aria-live="polite"></div>
-            <button type="submit" class="btn btn-full" id="unlock-btn">Unlock editing</button>
-          </form>
-        </div>
-
-        <!-- Portfolio -->
-        <div class="invest-panel invest-panel-wide">
-          <div class="invest-panel-head">
-            <h2 id="board-title">Jack's picks</h2>
-            <div class="invest-tools">
-              <select id="compare-select" aria-label="Compare against">
-                <option value="^GSPC" selected>S&amp;P 500</option>
-                <option value="NDX">Nasdaq-100</option>
-                <option value="DIA">DIA (SPDR DJIA)</option>
-              </select>
-              <label class="tool-toggle" title="Show individual positions on the chart">
-                <input type="checkbox" id="toggle-position-lines" checked />
-                <span>Positions</span>
-              </label>
-            </div>
-          </div>
-
-          <div class="invest-summary" id="portfolio-summary"></div>
-
-          <div class="chart-wrap">
-            <canvas id="invest-chart" height="360" aria-label="Performance chart of Jack's picks versus the market benchmark"></canvas>
-            <div id="chart-legend" class="chart-legend"></div>
-          </div>
-
-          <div class="table-scroll">
-            <table class="invest-table" id="positions-table">
-              <thead>
-                <tr>
-                  <th>Ticker</th>
-                  <th>Bought</th>
-                  <th>Buy px</th>
-                  <th>Now</th>
-                  <th>Shares</th>
-                  <th>Value</th>
-                  <th>Pick</th>
-                  <th>Benchmark</th>
-                  <th>Diff</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="positions-body"></tbody>
-            </table>
-          </div>
-
-          <div id="positions-empty" class="invest-empty hidden">
-            <p>No picks on the board yet.</p>
-          </div>
-
-          <div class="invest-footer">
-            <p class="fineprint" id="price-updated"></p>
-          </div>
-        </div>
+      <div class="trackers-grid" id="trackers-grid">
+        <!-- cards injected by the script -->
       </div>
+
+      <div class="tracker-owner invest-panel hidden" id="tracker-owner">
+        <div class="invest-panel-head">
+          <h2>Trackers (editing)</h2>
+          <span class="label-hint">Changes go live for everyone.</span>
+        </div>
+        <form id="add-stock-form" autocomplete="off">
+          <div class="form-row">
+            <div class="form-field">
+              <label for="track-symbol">Stock ticker to track *</label>
+              <input type="text" id="track-symbol" name="symbol" placeholder="PLTR"
+                required pattern="[A-Za-z0-9.\-^]{1,12}" maxlength="12" />
+            </div>
+            <div class="form-field">
+              <label for="track-name">Display name <span class="label-hint">(optional)</span></label>
+              <input type="text" id="track-name" name="name" placeholder="Palantir" maxlength="60" />
+            </div>
+          </div>
+          <div id="tracker-status" class="invest-status" role="status" aria-live="polite"></div>
+          <button type="submit" class="btn btn-full" id="add-stock-btn">Track this stock</button>
+        </form>
+        <div class="owner-actions">
+          <button class="btn-ghost btn-sm" id="lock-trackers-btn" type="button">Lock (exit)</button>
+        </div>
+        <p class="fineprint">
+          Replacing the stock resets its base to today's close. The S&amp;P 500 tracker
+          is managed by the daily record — don't remove it.
+        </p>
+      </div>
+
+      <div class="tracker-lock invest-panel" id="tracker-lock">
+        <div class="lock-ico" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="4" y="11" width="16" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" />
+          </svg>
+        </div>
+        <h2>Owner access</h2>
+        <p class="lock-copy">Anyone can view the trackers. Only the owner can add a stock.</p>
+        <form id="tracker-auth-form" autocomplete="off">
+          <div class="form-field">
+            <label for="tracker-code">Owner code</label>
+            <input type="text" id="tracker-code" name="code" placeholder="••••-••••-••••"
+              autocomplete="off" spellcheck="false" style="letter-spacing:.15em" />
+          </div>
+          <div id="tracker-auth-status" class="invest-status" role="status" aria-live="polite"></div>
+          <button type="submit" class="btn btn-full" id="tracker-auth-btn">Unlock</button>
+        </form>
+      </div>
+
+      <p class="tracker-note">
+        Method: each tracker's total change is measured from its base close (Sep 1, 2026)
+        to the most recent recorded daily close, updated at 4&nbsp;PM&nbsp;Central after
+        each market day.
+      </p>
     </div>
   </section>
 
 <script>
-  import {
-    Board,
-    errMsg,
-    usd2,
-    type BoardDeps,
-    type Position,
-  } from '../lib/investing/index';
+  import { trackersGet, trackersPost, trackersAuth, ApiError } from '../lib/trackers/api';
+  import { drawSparkline } from '../lib/trackers/sparkline';
+  import { trackerCardHtml, emptyTrackCardHtml } from '../lib/trackers/render';
+  import { direction, totalPct } from '../lib/trackers/compute';
+  import { errMsg } from '../lib/investing/format';
+  import type { TrackersBody } from '../lib/trackers/types';
 
   const $ = (sel: string) => document.querySelector(sel) as HTMLElement;
+  const grid = $('#trackers-grid');
+  const statusEl = $('#tracker-status');
 
-  function storedOwnerCode(): string {
-    try { return sessionStorage.getItem('jfpicks.owner') ?? ''; } catch { return ''; }
+  let ownerCode = '';
+  try { ownerCode = sessionStorage.getItem('jfpicks.owner') ?? ''; } catch { /* private mode */ }
+  const isOwner = () => ownerCode.length > 0;
+
+  function applyMode(): void {
+    $('#tracker-owner').classList.toggle('hidden', !isOwner());
+    $('#tracker-lock').classList.toggle('hidden', isOwner());
   }
 
-  const board = new Board({
-    positionsBody: $('#positions-body'),
-    emptyEl: $('#positions-empty'),
-    tableEl: $('#positions-table'),
-    summaryEl: $('#portfolio-summary'),
-    canvas: $('#invest-chart'),
-    legendEl: $('#chart-legend'),
-    compareSelect: $('#compare-select'),
-    toggleLines: $('#toggle-position-lines'),
-    priceUpdatedEl: $('#price-updated'),
-    ownerPanel: $('#owner-panel'),
-    ownerLock: $('#owner-lock'),
-    boardTitle: $('#board-title'),
-    ownerStatusEl: $('#owner-status'),
-    confirm: (m: string) => window.confirm(m),
-  } satisfies BoardDeps);
-  board.ownerCode = storedOwnerCode();
-
-  // ---------- owner unlock / lock ----------
-  const ownerForm = $('#owner-form');
-  const ownerCodeEl = $('#owner-code');
-
-  ownerForm.addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const code = ownerCodeEl.value.trim();
-    if (!code) { board.setOwnerStatus('warn', 'Enter your owner code.'); return; }
-    $('#unlock-btn').disabled = true;
-    board.setOwnerStatus('busy', 'Checking code…');
-    try {
-      const { picksAction } = await import('../lib/investing/api');
-      await picksAction('auth', { code });
-    } catch (e) {
-      $('#unlock-btn').disabled = false;
-      board.setOwnerStatus('err', 'That code is not right.');
-      return;
-    }
-    board.ownerCode = code;
-    try { sessionStorage.setItem('jfpicks.owner', code); } catch { /* private mode */ }
-    board.setOwnerStatus('ok', 'Unlocked.');
-    board.applyMode();
-    await board.refreshAll().catch(() => board.renderAll());
-  });
-
-  $('#lock-btn').addEventListener('click', () => {
-    board.ownerCode = '';
-    try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
-    ownerCodeEl.value = '';
-    board.setOwnerStatus('', '');
-    board.applyMode();
-  });
-
-  // ---------- add pick ----------
-  const form = $('#add-position-form');
-  const addBtn = $('#add-position-btn');
-  const statusEl = $('#add-position-status');
-  const setAddStatus = (kind: string, msg: string) => {
+  function setStatus(kind: string, msg: string): void {
     statusEl.className = 'invest-status ' + kind;
     statusEl.textContent = msg;
-  };
-  const today = () => new Date().toISOString().slice(0, 10);
-  $('#p-date').value = today();
+  }
 
-  form.addEventListener('submit', async (ev) => {
+  async function load(): Promise<TrackersBody | null> {
+    try {
+      const body = await trackersGet();
+      render(body);
+      return body;
+    } catch (e) {
+      grid.innerHTML = emptyTrackCardHtml('sp') + emptyTrackCardHtml('stock');
+      return null;
+    }
+  }
+
+  function render(body: TrackersBody): void {
+    const sp = body.tracks.find((t) => t.symbol === '^GSPC');
+    const stock = body.tracks.find((t) => t.symbol !== '^GSPC');
+    const cards: string[] = [];
+    if (sp) cards.push(trackerCardHtml(sp));
+    else cards.push(emptyTrackCardHtml('sp'));
+    if (stock) cards.push(trackerCardHtml(stock));
+    else cards.push(emptyTrackCardHtml('stock'));
+    grid.innerHTML = cards.join('');
+    for (const t of body.tracks) {
+      const canvas = document.querySelector<HTMLCanvasElement>(`.trk-spark[data-spark="${t.symbol}"]`);
+      if (!canvas) continue;
+      const up = totalPct(t) > 0;
+      drawSparkline(canvas, t.history, up, direction(totalPct(t)) === 'flat');
+    }
+  }
+
+  // ---------- owner auth ----------
+  $('#tracker-auth-form').addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    const symbol = ($('#p-symbol').value as string).trim().toUpperCase();
-    const name = ($('#p-name').value as string).trim();
-    const price = parseFloat(($('#p-price').value as string).replace(/[^0-9.]/g, ''));
-    const date = $('#p-date').value as string;
-    const sharesRaw = ($('#p-shares').value as string).replace(/[^0-9.]/g, '');
-    const shares = sharesRaw ? parseFloat(sharesRaw) : 1;
-    const note = ($('#p-note').value as string).trim();
-
-    if (!/^[A-Z0-9.\-^]{1,12}$/.test(symbol)) return setAddStatus('warn', 'That ticker looks off — use letters/digits like AAPL, NVDA, or ^GSPC.');
-    if (!Number.isFinite(price) || price <= 0) return setAddStatus('warn', 'Enter a valid buy price in USD.');
-    if (!date) return setAddStatus('warn', 'Pick a buy date.');
-    if (!Number.isFinite(shares) || shares <= 0 || shares > 1000000) return setAddStatus('warn', 'Enter a valid share count.');
-
-    setAddStatus('busy', `Checking price for ${symbol}…`);
-    addBtn.disabled = true;
+    const code = ($('#tracker-code').value as string).trim();
+    const authStatus = $('#tracker-auth-status');
+    if (!code) { authStatus.className = 'invest-status warn'; authStatus.textContent = 'Enter your owner code.'; return; }
+    $('#tracker-auth-btn').disabled = true;
+    authStatus.className = 'invest-status busy'; authStatus.textContent = 'Checking code…';
     try {
-      await board.addPick({ symbol, name, price, date, shares, note });
-      if (name !== ($('#p-name').value as string)) { /* board.addPick may have filled the name from the API */ }
-      form.reset();
-      $('#p-date').value = today();
-      setAddStatus('ok', `Added ${symbol} @ ${usd2(price)} — live for everyone.`);
+      await trackersAuth(code);
     } catch (e) {
-      if (e instanceof Error && e.message.startsWith("Couldn't verify")) setAddStatus('err', e.message);
-      else setAddStatus('err', 'Could not save: ' + errMsg(e));
+      $('#tracker-auth-btn').disabled = false;
+      authStatus.className = 'invest-status err'; authStatus.textContent = 'That code is not right.';
+      return;
+    }
+    ownerCode = code;
+    try { sessionStorage.setItem('jfpicks.owner', code); } catch { /* private mode */ }
+    authStatus.className = 'invest-status ok'; authStatus.textContent = 'Unlocked.';
+    applyMode();
+  });
+
+  $('#lock-trackers-btn').addEventListener('click', () => {
+    ownerCode = '';
+    try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
+    $('#tracker-code').value = '';
+    applyMode();
+  });
+
+  // ---------- add / replace stock ----------
+  $('#add-stock-form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const symbol = ($('#track-symbol').value as string).trim().toUpperCase();
+    const name = ($('#track-name').value as string).trim();
+    if (!/^[A-Z0-9.\-^]{1,12}$/.test(symbol)) {
+      setStatus('warn', 'That ticker looks off — use letters/digits like AAPL, NVDA, or PLTR.');
+      return;
+    }
+    if (symbol === '^GSPC') {
+      setStatus('warn', 'The S&P 500 tracker is fixed — track a stock instead.');
+      return;
+    }
+    $('#add-stock-btn').disabled = true;
+    setStatus('busy', `Verifying ${symbol}…`);
+    try {
+      const body = (await trackersPost('add', { code: ownerCode, symbol, name })) as unknown as TrackersBody;
+      render(body);
+      setStatus('ok', `Now tracking ${symbol} — base set to today's close.`);
+      $('#add-stock-form').reset();
+    } catch (e) {
+      if (e instanceof ApiError && e.status === 401) {
+        ownerCode = '';
+        try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
+        applyMode();
+      }
+      setStatus('err', 'Could not track that stock: ' + errMsg(e));
     } finally {
-      addBtn.disabled = false;
+      $('#add-stock-btn').disabled = false;
     }
-  });
-
-  // ---------- remove pick (event delegation) ----------
-  $('#positions-body').addEventListener('click', async (ev) => {
-    const btn = (ev.target as Element).closest('[data-del]');
-    if (!btn) return;
-    try {
-      await board.removePick((btn as HTMLElement).getAttribute('data-del') ?? '');
-    } catch (e) {
-      window.alert('Could not remove: ' + errMsg(e));
-    }
-  });
-
-  // ---------- tools ----------
-  $('#compare-select').addEventListener('change', () => { board.loadBenchmark().catch(() => board.renderAll()); });
-  $('#toggle-position-lines').addEventListener('change', () => board.renderAll());
-
-  $('#export-btn').addEventListener('click', () => {
-    const payload = { app: 'jackfaris-picks', version: 1, exportedAt: new Date().toISOString(), positions: board.positions };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `jacks-picks-${today()}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
-  });
-
-  $('#import-btn').addEventListener('click', () => $('#import-file').click());
-  $('#import-file').addEventListener('change', async (ev) => {
-    const file = (ev.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-    try {
-      const data: unknown = JSON.parse(await file.text());
-      const list = Array.isArray(data) ? data : (data as { positions?: unknown[] }).positions;
-      if (!Array.isArray(list)) throw new Error('No positions array found');
-      await board.replaceBoard(list as Position[]);
-      (ev.target as HTMLInputElement).value = '';
-    } catch (e) {
-      window.alert('Import failed: ' + errMsg(e));
-    }
-  });
-
-  $('#clear-btn').addEventListener('click', async () => {
-    try {
-      await board.clearBoard();
-    } catch (e) {
-      window.alert('Could not clear: ' + errMsg(e));
-    }
-  });
-
-  // ---------- resize ----------
-  let resizeTimer: ReturnType<typeof setTimeout> | null = null;
-  window.addEventListener('resize', () => {
-    if (resizeTimer) clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(() => board.renderAll(), 150);
   });
 
   // ---------- init ----------
-  board.applyMode();
-  board.refreshAll()
-    .then(async () => { await board.reverifyOwnerCode(); })
-    .catch(() => board.renderAll());
+  applyMode();
+  load().then((body) => {
+    if (isOwner() && body) {
+      trackersAuth(ownerCode).catch(() => {
+        ownerCode = '';
+        try { sessionStorage.removeItem('jfpicks.owner'); } catch { /* noop */ }
+        applyMode();
+      });
+    }
+  });
 </script>
 
 <style>
-  /* Investing page — light theme */
-  .investing-section { padding: var(--space-md) 0 var(--space-lg); }
-  .investing-grid { display: grid; grid-template-columns: 380px 1fr; gap: var(--space-md); align-items: start; }
-  @media (max-width: 900px) { .investing-grid { grid-template-columns: 1fr; } }
-
-  .invest-panel {
-    padding: var(--space-md);
+  .trackers-section { padding: var(--space-md) 0 var(--space-lg); }
+  .trackers-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-md);
     margin-bottom: var(--space-md);
+  }
+  @media (max-width: 680px) { .trackers-grid { grid-template-columns: 1fr; } }
+
+  .trk-card {
     background: #fff;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border-radius: 16px;
     box-shadow: var(--shadow-card);
+    padding: var(--space-md);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
   }
+  .trk-card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+  .trk-card.empty { box-shadow: none; background: var(--color-surface); }
 
-  .invest-panel h2 { margin-bottom: var(--space-sm); font-size: 1.375rem; }
-  .invest-panel-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: var(--space-sm); }
-  .invest-panel-head h2 { margin-bottom: 0; font-size: 1.375rem; }
-  .invest-tools { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-
-  #compare-select {
-    background: #fff; color: var(--color-text);
-    border: 1px solid var(--color-border-strong); border-radius: 10px;
-    padding: 0.5rem 0.75rem; font-family: var(--font-body); font-size: 0.875rem; font-weight: 600;
+  .trk-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 0.75rem;
+    margin-bottom: 0.5rem;
   }
-  .tool-toggle { display: flex; align-items: center; gap: 0.4rem; color: var(--color-text-light); font-size: 0.875rem; cursor: pointer; user-select: none; font-weight: 600; }
-  .tool-toggle input { accent-color: var(--color-accent); }
+  .trk-name {
+    font-weight: 800; font-size: 1.125rem; letter-spacing: -0.02em;
+    font-family: var(--font-heading);
+  }
+  .trk-sym {
+    font-size: 0.8125rem; font-weight: 700; color: var(--color-text-faint);
+    background: var(--color-surface); border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill); padding: 0.15rem 0.6rem;
+  }
+  .trk-main { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
+  .trk-price {
+    font-size: 2rem; font-weight: 800; letter-spacing: -0.035em;
+    font-family: var(--font-heading); line-height: 1.1;
+  }
+  .trk-price.muted { color: var(--color-text-faint); font-size: 1.25rem; font-weight: 600; }
+  .trk-delta { font-size: 1.25rem; font-weight: 800; }
+  .trk-delta.up { color: var(--color-pos); }
+  .trk-delta.down { color: var(--color-neg); }
+  .trk-delta.flat { color: var(--color-text-faint); }
+  .trk-since { font-size: 0.875rem; color: var(--color-text-light); font-weight: 600; }
+  .trk-spark { display: block; width: 100%; max-width: 220px; margin: 0.5rem 0; }
+  .trk-foot {
+    display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    font-size: 0.8125rem; color: var(--color-text-light);
+  }
+  .trk-foot b { color: var(--color-text); font-weight: 700; }
 
-  /* Owner lock card */
-  .owner-lock { text-align: center; display: flex; flex-direction: column; align-items: center; }
+  .tracker-owner, .tracker-lock { max-width: 520px; margin-bottom: var(--space-md); }
+  .tracker-lock { text-align: center; display: flex; flex-direction: column; align-items: center; }
   .lock-ico {
     width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    background: var(--color-accent-soft); border: 1px solid var(--color-accent-border); color: var(--color-accent-deep); margin-bottom: var(--space-sm);
+    background: var(--color-accent-soft); border: 1px solid var(--color-accent-border); color: var(--color-accent-deep);
+    margin-bottom: var(--space-sm);
   }
-  .owner-lock h2 { font-size: 1.375rem; margin-bottom: 0.5rem; }
+  .tracker-lock h2 { font-size: 1.375rem; margin-bottom: 0.5rem; }
   .lock-copy { font-size: 0.9375rem; margin-bottom: var(--space-sm); }
-  .owner-lock form { width: 100%; max-width: 320px; }
-  .owner-lock .form-field label { text-align: left; }
-  .owner-hint { font-size: 0.875rem; margin-bottom: var(--space-sm); }
+  .tracker-lock form { width: 100%; max-width: 320px; }
+  .tracker-lock .form-field label { text-align: left; }
   .owner-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
-
   .label-hint { color: var(--color-text-faint); font-size: 0.8125rem; }
   .invest-status { font-size: 0.875rem; margin-bottom: 0.75rem; min-height: 1.2em; font-weight: 600; }
   .invest-status.busy { color: var(--color-text-light); }
@@ -373,40 +282,8 @@ export const prerender = true;
   .invest-status.err { color: var(--color-neg); }
   .invest-status.warn { color: #b7791f; }
   .fineprint { font-size: 0.8125rem; color: var(--color-text-faint); margin-top: 0.75rem; }
-
-  .invest-summary { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-bottom: var(--space-sm); }
-  .sum-chip { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-pill); padding: 0.4rem 0.9rem; font-size: 0.8125rem; color: var(--color-text-light); font-weight: 600; }
-  .sum-chip b { color: var(--color-text); }
-  .sum-chip .pos { color: var(--color-pos); }
-  .sum-chip .neg { color: var(--color-neg); }
-  .sum-chip .muted { color: var(--color-text-faint); font-weight: 500; }
-  .sum-chip.warn { border-color: rgba(183, 121, 31, 0.4); color: #b7791f; }
-
-  .chart-wrap { margin-bottom: var(--space-sm); border: 1px solid var(--color-border); border-radius: var(--radius); background: #fff; padding: var(--space-sm); }
-  #invest-chart { width: 100%; display: block; }
-  .chart-legend { display: flex; flex-wrap: wrap; gap: 0.9rem; margin-top: 0.6rem; padding: 0 0.25rem; }
-  .legend-item { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--color-text-light); font-weight: 600; }
-  .legend-item .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; background: var(--color-text-light); }
-  .legend-item .swatch.bench { background: var(--color-accent); }
-
-  .table-scroll { overflow-x: auto; border: 1px solid var(--color-border); border-radius: var(--radius); background: #fff; }
-  .invest-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
-  .invest-table th, .invest-table td { padding: 0.65rem 0.75rem; text-align: left; white-space: nowrap; border-bottom: 1px solid var(--color-border); }
-  .invest-table th { color: var(--color-text-faint); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; background: var(--color-surface); }
-  .invest-table tr:last-child td { border-bottom: none; }
-  .invest-table .tick b { color: var(--color-text); }
-  .invest-table .muted { color: var(--color-text-faint); }
-  .invest-table .small { font-size: 0.75rem; }
-  .invest-table .pos { color: var(--color-pos); }
-  .invest-table .neg { color: var(--color-neg); }
-  .invest-table .note { cursor: help; margin-left: 0.35rem; }
-  .row-actions { text-align: right; }
-  .icon-btn { background: #fff; border: 1px solid var(--color-border-strong); color: var(--color-text-light); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 1rem; line-height: 1; transition: all 0.15s ease; }
-  .icon-btn:hover { color: var(--color-neg); border-color: rgba(217, 48, 37, 0.4); background: rgba(217, 48, 37, 0.06); }
-  .invest-empty { padding: var(--space-md); text-align: center; border: 1px dashed var(--color-border-strong); border-radius: var(--radius); }
-  .invest-footer { display: flex; align-items: center; justify-content: flex-end; gap: 1rem; flex-wrap: wrap; margin-top: var(--space-sm); }
   .btn-sm { padding: 0.5rem 1rem; font-size: 0.8125rem; border-radius: var(--radius-pill); }
   .btn-ghost { background: transparent; border: 1px solid var(--color-border-strong); color: var(--color-text-light); cursor: pointer; font-family: var(--font-body); font-weight: 600; }
   .btn-ghost:hover { color: var(--color-text); border-color: var(--color-text-faint); background: var(--color-surface); }
+  .tracker-note { font-size: 0.875rem; color: var(--color-text-faint); max-width: 52rem; }
 </style>
-</Layout>

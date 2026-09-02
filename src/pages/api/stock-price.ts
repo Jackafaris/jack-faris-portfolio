@@ -19,9 +19,11 @@ export interface StockPriceData {
   dayChangePct: number | null;
   marketTime: number;
   history: PricePoint[];
+  /** True when served from cache after an upstream failure */
+  stale?: boolean;
 }
 
-interface StockPriceError {
+export interface StockPriceError {
   error: string;
   stale?: boolean;
 }
@@ -168,7 +170,7 @@ async function fetchYahoo(symbol: string, start: number, end: number): Promise<Y
   throw lastErr ?? new Error('Yahoo rate limited (HTTP 429) — try again in a minute');
 }
 
-function sanitizeSymbol(raw: string | null): string | null {
+export function sanitizeSymbol(raw: string | null | undefined): string | null {
   let s = (raw ?? '').trim().toUpperCase();
   if (s.startsWith('IB:')) s = s.slice(3);
   if (!s || s.length > 12) return null;
@@ -203,17 +205,14 @@ function historyFrom(body: YahooChartBody, ts: number[]): PricePoint[] {
   return history;
 }
 
-export async function GET({ url }: { url: URL }): Promise<Response> {
-  const symbol = sanitizeSymbol(url.searchParams.get('symbol'));
-  if (!symbol) return json({ error: 'Invalid symbol' }, 400);
-
+export async function getPrice(symbol: string, from: string | null): Promise<StockPriceData> {
   const now = Date.now();
-  const { days, start } = rangeFrom(parseDateISO(url.searchParams.get('from')), now);
+  const { days, start } = rangeFrom(parseDateISO(from), now);
   const end = now + 20 * DAY_MS; // timezone buffer
   const key = `${symbol}:${days}:${Math.floor(start / 3600000)}`;
 
   const hit = cache.get(key);
-  if (hit && now - hit.at < CACHE_TTL_MS) return json(hit.data);
+  if (hit && now - hit.at < CACHE_TTL_MS) return hit.data;
 
   let body: YahooChartBody;
   try {
@@ -221,8 +220,8 @@ export async function GET({ url }: { url: URL }): Promise<Response> {
   } catch (e) {
     // Serve a stale cached value if one exists, even past TTL, on upstream failure.
     const stale = cache.get(symbol);
-    if (stale && now - stale.at < STALE_TTL_MS) return json({ ...stale.data, stale: true });
-    return json({ error: `Could not reach price source: ${e instanceof Error ? e.message : String(e)}` }, 502);
+    if (stale && now - stale.at < STALE_TTL_MS) return { ...stale.data, stale: true };
+    throw e;
   }
 
   const result = body.chart?.result?.[0];
@@ -230,18 +229,15 @@ export async function GET({ url }: { url: URL }): Promise<Response> {
   const price = Number(meta?.regularMarketPrice);
   if (!result || !Number.isFinite(price)) {
     const known = body.chart?.error?.knownsymbol;
-    return json(
-      {
-        error: known
-          ? `"${symbol}" was not found. Did you mean ${known}?`
-          : `No price data for "${symbol}"`,
-      },
-      404,
+    throw new Error(
+      known
+        ? `"${symbol}" was not found. Did you mean ${known}?`
+        : `No price data for "${symbol}"`,
     );
   }
 
   const history = historyFrom(body, result.timestamp ?? []);
-  if (!history.length) return json({ error: `No history for "${symbol}"` }, 404);
+  if (!history.length) throw new Error(`No history for "${symbol}"`);
 
   const data: StockPriceData = {
     symbol,
@@ -258,5 +254,17 @@ export async function GET({ url }: { url: URL }): Promise<Response> {
   };
   cache.set(key, { at: now, data });
   cache.set(symbol, { at: now, data }); // stale-fallback slot
-  return json(data);
+  return data;
+}
+
+export async function GET({ url }: { url: URL }): Promise<Response> {
+  const symbol = sanitizeSymbol(url.searchParams.get('symbol'));
+  if (!symbol) return json({ error: 'Invalid symbol' }, 400);
+  try {
+    return json(await getPrice(symbol, url.searchParams.get('from')));
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    const status = msg.includes('not found') || msg.includes('No price') || msg.includes('No history') ? 404 : 502;
+    return json({ error: status === 502 ? `Could not reach price source: ${msg}` : msg }, status);
+  }
 }
